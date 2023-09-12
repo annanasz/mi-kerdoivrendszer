@@ -17,7 +17,7 @@ Nem lenne rossz, ha lenne ilyen funkció is, és kéz nélkül be lehetne külde
 - Az alkalmazás fejlesztése során MVVM mintára gondoltam, mert ahogy keresgéltem úgy láttam, hogy széleskörűen használják mobilfejlesztésben, és Kliensoldali Technológiák háziban is használtam már.
 - **Technológiák amiket használni szeretnék:**
     - **Frontend:** Amikor hallgattam az Andorid tárgyat még nem Composet tanultunk, szóval ha még nem túl outdated XML alapú UI-t készítenék, mert abban van már gyakorlatom
-    - **Backend:** Itt kérnék egy kis segítséget, hogy mi lehet a legjobb választás. Én arra gondoltam, hogy nem FireBase-t használnálnék, hanem kipróbálnám a SpringBoot-ot, vagy esetleg NodeJS-t (alapszinten használtam már). Mi a véleményed, mennyire megvalósíthatü egy custom backend, ha még nincs nagy tapasztalatom ebben.
+    - **Backend:** Itt kérnék egy kis segítséget, hogy mi lehet a legjobb választás. Én arra gondoltam, hogy nem FireBase-t használnálnék, hanem kipróbálnám a SpringBoot-ot, vagy esetleg NodeJS-t (alapszinten használtam már). Mi a véleményed, mennyire megvalósítható egy custom backend, ha még nincs nagy tapasztalatom ebben.
     - **Adatbázis:** Mindenképpen valami NoSQL adatbázist használnék a kérdőívek eltárolására, én a MongoDB-re gondoltam. Nem tudom, hogy lokális tárolásra szükség van-e, de a Room-ot használtam már.
     - **Kérdőív felismerés:** MLKit
     - **Kérdőív felolvasás, kitöltés beszéd segítségével:** beépített SpeechRecognizer és TextToSpeech. **Kérdés: ehhez van más javalatod?**
