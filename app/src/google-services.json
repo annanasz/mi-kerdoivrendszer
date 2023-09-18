@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "756487640050",
+    "project_id": "survey-system-supported-by-ai",
+    "storage_bucket": "survey-system-supported-by-ai.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:756487640050:android:08330a31a20cd79c26116b",
+        "android_client_info": {
+          "package_name": "com.bme.surveysystemsupportedbyai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBdpPZObLzIWPAggNOUh_sMcAVIYXl6fLw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
