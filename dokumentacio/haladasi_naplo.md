@@ -1,4 +1,18 @@
 # Haladási napló
+
+## 2. Hét
+
+Ezen a héten a következőkkel haladtam:
+
+- Létrehoztam egy **Firebase** projektet az alkalmazásomhoz, összekapcsoltam őket. Aktiváltam az autentikációt email és jelszó segítségével a projekten belül.
+- Ismerkedtem a **Jetpack Compose**-al.
+- Létrehoztam az alkalmazáshoz egy Android Studio **projektet**, és elkészítettem egy kezdetleges **autentikációt**, nem figyelve a design-ra, úgy gondolom, hogy ha majd marad idő akkor még alakítgatok rajta, de szerettem volna, ha van egy működő autentikáció. Sikerült is tesztelni a regisztráció és bejelentkezés funkciókat, Firebase-ben is láthatóak a userek. Probléma volt viszont, hogy elég lassan működik az autentikáció, soksyor több, mint 5 percbe is beletelik, de gondolom az is befolyásolja, hogy emulator-t használok Ehhez segítségül a következő repo-t használtam: https://github.com/alexmamo/FirebaseSignInWithEmailAndPassword/tree/master. Értelmeztem a kódot, és picit átalakítva felhasználtam. Nem tudom itt mekkora gond lehet plágium szempontból, hogy ezt a részt nem teljesen magamtól csináltam, de úgy gondolom mivel nem ez az alkalmazásom lényege nem lehet akkora baj.
+- Utánanéztem a Dagger-Hilt Dependency Injection könyvtárnak, ezt használtam is az autentikáció elkészítése során, így sokkal modulárisabb lett a kód. Ehhez főként a következő videót használtam fel: https://www.youtube.com/watch?v=bbMsuI2p1DQ&ab_channel=PhilippLackner
+
+-   Gondolkoztam, hogy hogyan épüljön fel az alkalmazás, milyen képernyők legyenek. Még képernyőtervet nem készítettem, de bejelentkezés után majd egy **Bottom Navigation bar**-t szeretnék használni, amely segítségével lehet váltani majd a különböző fülek közt. A következő lépés, hogy ezt hozzáadjam a projekthez.
+
+- Kiegészítettem a **specifikációt**, valamint készítettem egy kezdetleges **ütemtervet** is, megtalálható a dokumentáció mappában.
+
 ## 1. Hét
 Ezen a héten a következőkkel haladtam:
 
