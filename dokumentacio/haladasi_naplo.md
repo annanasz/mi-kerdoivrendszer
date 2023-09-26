@@ -1,5 +1,15 @@
 # Haladási napló
 
+## 3.Hét
+
+Ezen a héten a következőkkel haladtam:
+
+- Elkészítettem a fontosabb képernyők **drótvázait** amiről beszéltünk múltkori konzultáción, ezeket betettem a specifikációt tartalmazó doksiba, némi magyarázattal.
+- Kiegészítettem pár pontosítással a specifikációt a feladattal kapcsoatosan.
+- Megterveztem, hogy hogyan fogom tárolni a kérdőíveket FireStore-ban NoSQL adatbázisban. A megtervezett **sémához** ER diagram is készült, ezt szintén a specifikáció doksiban helyeztem el.
+- Utánanéztem a **Bottom Navigation bar** használatának, hiszen majd ezt szeretném használni az alkalmazásomban a képernyők közti navigációra.
+- Ismerkedtem a Nested Navigation Graph-al, picit átalakítottam az eddig meglévő navigációt az alkalmazásomban.
+
 ## 2. Hét
 
 Ezen a héten a következőkkel haladtam:

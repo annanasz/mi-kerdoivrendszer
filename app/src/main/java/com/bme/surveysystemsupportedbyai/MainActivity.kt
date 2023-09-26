@@ -8,6 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.bme.surveysystemsupportedbyai.core.Constants.AUTH_NESTED_ROUTE
+import com.bme.surveysystemsupportedbyai.core.Constants.HOME_NESTED_ROUTE
 import com.bme.surveysystemsupportedbyai.navigation.NavGraph
 import com.bme.surveysystemsupportedbyai.navigation.Screen
 import dagger.hilt.android.AndroidEntryPoint
@@ -44,15 +46,15 @@ class MainActivity : ComponentActivity() {
         }
     }
     @Composable
-    private fun NavigateToSignInScreen() = navController.navigate(Screen.SignInScreen.route) {
-        popUpTo(navController.graph.id) {
+    private fun NavigateToSignInScreen() = navController.navigate(AUTH_NESTED_ROUTE) {
+        popUpTo(HOME_NESTED_ROUTE) {
             inclusive = true
         }
     }
 
     @Composable
-    private fun NavigateToHomeScreen() = navController.navigate(Screen.HomeScreen.route) {
-        popUpTo(navController.graph.id) {
+    private fun NavigateToHomeScreen() = navController.navigate(HOME_NESTED_ROUTE) {
+        popUpTo(AUTH_NESTED_ROUTE) {
             inclusive = true
         }
     }

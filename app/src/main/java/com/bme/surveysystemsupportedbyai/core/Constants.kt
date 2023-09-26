@@ -7,6 +7,10 @@ object Constants {
     //Menu Items
     const val SIGN_OUT_ITEM = "Sign out"
 
+    //nested navgraph names
+    const val AUTH_NESTED_ROUTE = "auth"
+    const val HOME_NESTED_ROUTE = "home_nested"
+
     const val EMAIL_LABEL = "Email"
     const val PASSWORD_LABEL = "Password"
 

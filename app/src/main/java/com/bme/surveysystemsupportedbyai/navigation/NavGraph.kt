@@ -5,6 +5,9 @@ import androidx.compose.runtime.ExperimentalComposeApi
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
+import com.bme.surveysystemsupportedbyai.core.Constants.AUTH_NESTED_ROUTE
+import com.bme.surveysystemsupportedbyai.core.Constants.HOME_NESTED_ROUTE
 import com.bme.surveysystemsupportedbyai.home.HomeScreen
 import com.bme.surveysystemsupportedbyai.register.RegisterScreen
 import com.bme.surveysystemsupportedbyai.sign_in.SignInScreen
@@ -16,30 +19,40 @@ fun NavGraph(
 ){
     NavHost(
         navController = navController,
-        startDestination = Screen.SignInScreen.route
+        startDestination = AUTH_NESTED_ROUTE
     ){
-        composable(
-            route = Screen.SignInScreen.route
-        ) {
-            SignInScreen(
-                navigateToRegisterScreen = {
-                    navController.navigate(Screen.RegisterScreen.route)
-                }
-            )
+        navigation(
+            startDestination = Screen.SignInScreen.route,
+            route = AUTH_NESTED_ROUTE
+        ){
+            composable(
+                route = Screen.SignInScreen.route
+            ) {
+                SignInScreen(
+                    navigateToRegisterScreen = {
+                        navController.navigate(Screen.RegisterScreen.route)
+                    }
+                )
+            }
+            composable(
+                route = Screen.RegisterScreen.route
+            ) {
+                RegisterScreen(
+                    navigateBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
         }
-        composable(
-            route = Screen.RegisterScreen.route
-        ) {
-            RegisterScreen(
-                navigateBack = {
-                    navController.popBackStack()
-                }
-            )
-        }
-        composable(
-            route = Screen.HomeScreen.route
-        ) {
-            HomeScreen()
+        navigation(
+            startDestination = Screen.HomeScreen.route,
+            route= HOME_NESTED_ROUTE
+        ){
+            composable(
+                route = Screen.HomeScreen.route
+            ) {
+                HomeScreen()
+            }
         }
     }
 }
