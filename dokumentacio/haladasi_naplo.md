@@ -6,7 +6,10 @@
 
   - Kicsit eltérve az ütemtervtől nem teljesen a kamerás beolvasással foglalkoztam, mert az emulatorral kényelmetlen lett volna. Az MLKit és CameraX könyvtárakról kapott videókat megnéztem, kicsit olvasgattam róluk. Mivel kamerahasználat nem állt a rendelkezésemre, ezért a képernyőket hoztam létre az alkalmazásban, a Firestore-t próbáltam működésre bírni.
   - Az alkalmazásban létrehoztam egy **BottomNavigation-t**, amely a főképernyők közti navigálásra szolgál. 
-  - Beüzemeltem a Firestore-t, adtam hozzá példaadatokat a console-os felületen, hogy kipróbáljam, hogy működik-e az appommal az olvasás. Sajnos emulatorral nem sikerült az olvasást tesztelni, viszont a legalapabb írási művelet az sikerült. Amikor az olvasást akartam kipróbálni, akkor a hibaüzenet amit kaptam: [Firestore] Could not reach Cloud Firestore backend. Backend didn't respond within 10 seconds. Reménykedek, hogy ez az emulator miatt van, hiszen az írás volt már, hogy sikerült az appból.
+  - Beüzemeltem a Firestore-t, adtam hozzá példaadatokat a console-os felületen, hogy kipróbáljam, hogy működik-e az appommal az olvasás. Sajnos emulatorral nem sikerült az olvasást tesztelni, viszont a legalapabb írási művelet az sikerült. Amikor az olvasást akartam kipróbálni, akkor a hibaüzenet amit kaptam: 
+
+    - [Firestore] Could not reach Cloud Firestore backend. Backend didn't respond within 10 seconds. Reménykedek, hogy ez az emulator miatt van, hiszen az írás volt már, hogy sikerült az appból.
+    - Stream closed with status: Status{code=UNAVAILABLE, description=Channel shutdownNow invoked, cause=null}.
   - Mivel a Firestore nem működött, foglalkoztam a képernyőkkel, amelyeket egyelőre beleégetett adatokkal teszteltem. 
   - Elkészítettem a **MySurveys** oldalt, ahol megjelennek a felhasználó kérdőívei egymás alatt listában. Ha a listaelemre kattintunk, akkor megjelenik a **SurveyDetails** képernyő, ahol meg lehet tekinteni a kérdőívet a kérdésekkel.
   - Ha a kis Edit ikonra kattintunk, akkor megjelenik az **EditSurvey** képernyő, amely ugyancsak beégetett adatokon működik. Itt lehetőség van megváltoztatni az egyes kérdőívek kérdéseit. Hiányzik még a kérdés hozzáadás funkció, és egy DONE gomb, aminek hatására majd Firestoreba kellene írni.
@@ -17,6 +20,7 @@
       - Error:(2, 2) Expecting an activity to have `android.intent.category.LEANBACK_LAUNCHER` intent filter
       - Error:(2, 2) Expecting `<uses-feature android:name="android.software.leanback" android:required="false" />` tag
       - Error:(2, 2) Hardware feature `android.hardware.touchscreen` not explicitly marked as optional 
+
 
 
 ## 3.Hét
