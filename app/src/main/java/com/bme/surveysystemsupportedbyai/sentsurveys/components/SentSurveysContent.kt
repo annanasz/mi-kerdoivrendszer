@@ -1,4 +1,4 @@
-package com.bme.surveysystemsupportedbyai.home.components
+package com.bme.surveysystemsupportedbyai.sentsurveys.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,10 +10,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bme.surveysystemsupportedbyai.core.Constants.WELCOME_MESSAGE
+import com.bme.surveysystemsupportedbyai.core.Constants
 
 @Composable
-fun HomeContent(
+fun SentSurveysContent(
     padding: PaddingValues
 ) {
     Box(
@@ -21,7 +21,7 @@ fun HomeContent(
         contentAlignment = Alignment.TopCenter
     ) {
         Text(
-            text = WELCOME_MESSAGE,
+            text = Constants.WELCOME_SENT_SURVEYS,
             fontSize = 24.sp
         )
     }

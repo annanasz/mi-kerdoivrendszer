@@ -8,10 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.bme.surveysystemsupportedbyai.core.Constants.AUTH_NESTED_ROUTE
-import com.bme.surveysystemsupportedbyai.core.Constants.HOME_NESTED_ROUTE
-import com.bme.surveysystemsupportedbyai.navigation.NavGraph
-import com.bme.surveysystemsupportedbyai.navigation.Screen
+import com.bme.surveysystemsupportedbyai.navigation.Graph
+import com.bme.surveysystemsupportedbyai.navigation.RootNavGraph
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -22,39 +20,44 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             navController = rememberNavController()
-            NavGraph(
-                navController=navController
+            RootNavGraph(
+                navController=navController,
+                AuthState()
             )
-            AuthState()
+
         }
     }
 
     @Composable
-    private fun AuthState() {
+    private fun  AuthState() : String {
         val isUserSignedOut = viewModel.getAuthState().collectAsState().value
-        if (isUserSignedOut) {
-            NavigateToSignInScreen()
-        } else {
-            /*if (viewModel.isEmailVerified) {
-                //NavigateToProfileScreen()
-            } else {
-                //NavigateToVerifyEmailScreen()
-            }*/
-            NavigateToHomeScreen()
-        }
+//        if (isUserSignedOut) {
+//            NavigateToSignInScreen()
+//        } else {
+//            /*if (viewModel.isEmailVerified) {
+//                //NavigateToProfileScreen()
+//            } else {
+//                //NavigateToVerifyEmailScreen()
+//            }*/
+//            NavigateToHomeScreen()
+//        }
+        if(isUserSignedOut)
+            return Graph.AUTH
+        else return Graph.MAIN
     }
     @Composable
-    private fun NavigateToSignInScreen() = navController.navigate(AUTH_NESTED_ROUTE) {
-        popUpTo(HOME_NESTED_ROUTE) {
+    private fun NavigateToSignInScreen() = navController.navigate(Graph.AUTH) {
+        popUpTo(Graph.MAIN) {
             inclusive = true
         }
     }
 
     @Composable
-    private fun NavigateToHomeScreen() = navController.navigate(HOME_NESTED_ROUTE) {
-        popUpTo(AUTH_NESTED_ROUTE) {
+    private fun NavigateToHomeScreen() = navController.navigate(Graph.MAIN) {
+        popUpTo(Graph.AUTH) {
             inclusive = true
         }
     }

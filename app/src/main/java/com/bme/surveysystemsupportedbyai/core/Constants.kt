@@ -4,6 +4,12 @@ object Constants {
     const val SIGN_IN_SCREEN = "Sign in"
     const val REGISTER_SCREEN = "Register"
     const val HOME_SCREEN = "Home"
+    const val MY_SURVEYS_SCREEN = "MySurveys"
+    const val SENT_SURVEYS_SCREEN = "SentSurveys"
+    const val FILLED_OUT_SURVEYS_SCREEN = "FilledOutSurveys"
+    const val INBOX_SURVEYS_SCREEN = "InboxSurveys"
+    const val SURVEY_DETAILS_SCREEN = "SurveyDetails"
+    const val SURVEY_EDIT_SCREEN = "SurveyEdit"
     //Menu Items
     const val SIGN_OUT_ITEM = "Sign out"
 
@@ -26,5 +32,11 @@ object Constants {
 
     const val VERIFY_EMAIL_MESSAGE = "We've sent you an email with a link to verify the email."
 
+    //Welcome messages
     const val WELCOME_MESSAGE = "Welcome to our app."
+    const val WELCOME_FILLED_OUT = "Welcome to filled out surveys."
+    const val WELCOME_MY_SURVEYS = "Welcome to my surveys."
+    const val WELCOME_SENT_SURVEYS = "Welcome to sent surveys."
+    const val WELCOME_INBOX = "Welcome to inbox surveys."
+
 }

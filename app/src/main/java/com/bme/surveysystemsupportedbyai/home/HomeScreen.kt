@@ -3,31 +3,37 @@ package com.bme.surveysystemsupportedbyai.home
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.bme.surveysystemsupportedbyai.components.TopBar
-import com.bme.surveysystemsupportedbyai.core.Constants.HOME_SCREEN
-import com.bme.surveysystemsupportedbyai.home.components.HomeContent
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.bme.surveysystemsupportedbyai.home.components.BottomNavigation
+import com.bme.surveysystemsupportedbyai.navigation.MainGraph
+import com.bme.surveysystemsupportedbyai.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    navController: NavHostController = rememberNavController()
 ) {
-
-    Scaffold(
-        topBar = {
-            TopBar(
-                title = HOME_SCREEN,
-                signOut = {
-                    viewModel.signOut()
-                }
-            )
-        },
-        content = { padding ->
-            HomeContent(
-                padding = padding
-            )
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val shouldShowBottomNavigation = navBackStackEntry?.destination?.route != Screen.SurveyDetailsScreen.route&&
+            navBackStackEntry?.destination?.route != Screen.SurveyEditScreen.route
+    if(shouldShowBottomNavigation){
+        Scaffold(
+            bottomBar = {BottomNavigation(navController = navController)}
+        ){
+                paddingValues ->
+            MainGraph(navController = navController, paddingValues = paddingValues)
         }
-    )
+    }
+    else{
+        Scaffold(){
+                paddingValues ->
+            MainGraph(navController = navController, paddingValues = paddingValues)
+        }
+    }
 
 }
