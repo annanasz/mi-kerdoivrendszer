@@ -19,8 +19,9 @@ fun HomeScreen(
     navController: NavHostController = rememberNavController()
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val shouldShowBottomNavigation = navBackStackEntry?.destination?.route != Screen.SurveyDetailsScreen.route&&
-            navBackStackEntry?.destination?.route != Screen.SurveyEditScreen.route
+    val shouldShowBottomNavigation = navBackStackEntry?.destination?.route?.contains(Screen.SurveyDetailsScreen.route)==false &&
+            navBackStackEntry?.destination?.route?.contains(Screen.SurveyEditScreen.route)==false &&
+            navBackStackEntry?.destination?.route?.contains(Screen.SurveyFillOutScreen.route)==false
     if(shouldShowBottomNavigation){
         Scaffold(
             bottomBar = {BottomNavigation(navController = navController)}

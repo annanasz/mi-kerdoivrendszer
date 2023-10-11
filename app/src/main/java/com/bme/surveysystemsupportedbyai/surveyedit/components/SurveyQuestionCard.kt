@@ -34,7 +34,7 @@ fun SurveyQuestionCard(
                 questionIndex = questionIndex
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(2.dp))
 
             if (question.type == "checkbox" || question.type == "multiple_choice") {
                 question.options.forEachIndexed { optionIndex, option ->

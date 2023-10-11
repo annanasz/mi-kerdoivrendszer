@@ -1,6 +1,8 @@
 package com.bme.surveysystemsupportedbyai.domain.model
 
-import java.security.Timestamp
+
+import com.google.firebase.Timestamp
+import com.google.firebase.firestore.DocumentId
 
 //data class SentSurvey(
 //    val surveyId: String,
@@ -10,8 +12,11 @@ import java.security.Timestamp
 //)
 
 data class SentSurvey(
-    val survey: Survey,
-    val sender: User,
-    val recipients: List<User>,
-    val timestamp: Timestamp
+    @DocumentId var id:String="",
+    val surveyId: String ="",
+    val surveyTitle: String = "",
+    val senderId: String?="",
+    val senderEmail: String?="",
+    val recipients: List<String> = emptyList(),
+    val timestamp: Timestamp? = null
 )

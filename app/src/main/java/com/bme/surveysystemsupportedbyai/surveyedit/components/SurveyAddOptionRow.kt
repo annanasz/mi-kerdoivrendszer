@@ -18,7 +18,7 @@ fun SurveyAddOptionRow(viewModel: SurveyEditViewModel, question: Question) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 8.dp)
+            .padding(top = 2.dp)
     ) {
         IconButton(
             onClick = {

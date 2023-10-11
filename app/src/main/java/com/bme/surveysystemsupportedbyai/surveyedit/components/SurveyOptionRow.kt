@@ -35,7 +35,7 @@ fun SurveyOptionRow(
     ) {
         if (question.type == "checkbox") {
             Checkbox(
-                checked = question.options.contains(option),
+                checked = false,
                 onCheckedChange = { /* Handle Checkbox State */ },
                 enabled = false
             )
@@ -54,7 +54,8 @@ fun SurveyOptionRow(
             },
             label = { Text(text = "Option ${optionIndex + 1}") },
             modifier = Modifier
-                .padding(4.dp)
+                .padding(end = 2.dp)
+                .weight(1f)
         )
         IconButton(
             onClick = {

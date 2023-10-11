@@ -13,12 +13,12 @@ import com.bme.surveysystemsupportedbyai.mysurveys.MySurveysSurveyScreen
 import com.bme.surveysystemsupportedbyai.sentsurveys.SentSurveysSurveyScreen
 import com.bme.surveysystemsupportedbyai.surveyDetails.SurveyDetailsScreen
 import com.bme.surveysystemsupportedbyai.surveyedit.SurveyEditScreen
+import com.bme.surveysystemsupportedbyai.surveyfillout.SurveyFillOutScreen
 
 @OptIn(ExperimentalComposeApi::class)
 @Composable
 fun MainGraph(
-    navController: NavHostController,
-    paddingValues: PaddingValues
+    navController: NavHostController, paddingValues: PaddingValues
 ) {
     NavHost(
         navController = navController,
@@ -43,15 +43,25 @@ fun MainGraph(
         composable(
             route = Screen.InboxSurveysScreen.route
         ) {
-            InboxSurveyScreen()
+            InboxSurveyScreen(openFillOutScreen = { route -> navController.navigate(route) })
         }
-        composable(Screen.SurveyDetailsScreen.route) {
+        composable("${Screen.SurveyDetailsScreen.route}$SURVEY_ID_ARG") {
             SurveyDetailsScreen(navigateBack = {
                 navController.popBackStack()
             })
         }
-        composable(Screen.SurveyEditScreen.route) {
-            SurveyEditScreen()
+        composable("${Screen.SurveyEditScreen.route}$SURVEY_ID_ARG") {
+            SurveyEditScreen(navigateBack = {
+                navController.popBackStack()
+            })
+        }
+        composable("${Screen.SurveyFillOutScreen.route}$SURVEY_ID_ARG") {
+            SurveyFillOutScreen(navigateBack = {
+                navController.popBackStack()
+            })
         }
     }
 }
+
+const val SURVEY_ID = "surveyId"
+const val SURVEY_ID_ARG = "?$SURVEY_ID={$SURVEY_ID}"

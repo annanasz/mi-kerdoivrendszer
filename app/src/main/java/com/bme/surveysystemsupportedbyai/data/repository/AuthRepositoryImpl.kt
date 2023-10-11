@@ -50,7 +50,9 @@ class AuthRepositoryImpl @Inject constructor(
         Response.Failure(e)
     }
 
-    override fun signOut() = auth.signOut()
+    override fun signOut() {
+        auth.signOut()
+    }
 
     override fun getAuthState(viewModelScope: CoroutineScope) = callbackFlow {
         val authStateListener = FirebaseAuth.AuthStateListener { auth ->

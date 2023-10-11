@@ -20,17 +20,16 @@ import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.runtime.State
 import androidx.compose.ui.text.font.FontWeight
-import com.bme.surveysystemsupportedbyai.domain.model.Survey
+import com.bme.surveysystemsupportedbyai.domain.model.SurveyRaw
 
 @Composable
 fun SurveyItem(
-    survey: Survey,
-    onEditClick: (Survey) -> Unit,
-    onDeleteClick: (Survey) -> Unit,
-    onSendClick: (Survey) -> Unit,
-    onItemClick: (Survey) -> Unit
+    survey: SurveyRaw,
+    onEditClick: (SurveyRaw) -> Unit,
+    onDeleteClick: (SurveyRaw) -> Unit,
+    onSendClick: (SurveyRaw) -> Unit,
+    onItemClick: (SurveyRaw) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -59,7 +58,6 @@ fun SurveyItem(
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp
             )
-            Spacer(modifier = Modifier.weight(1f))
             // Display edit, delete, and send buttons as icons
             IconButton(
                 onClick = { onEditClick(survey) }
@@ -95,11 +93,11 @@ fun SurveyItem(
 @Composable
 fun SurveyList(
     //surveys: State<List<Survey>>,
-    surveys: List<Survey>,
-    onEditClick: (Survey) -> Unit,
-    onDeleteClick: (Survey) -> Unit,
-    onSendClick: (Survey) -> Unit,
-    onItemClick: (Survey) -> Unit
+    surveys: List<SurveyRaw>,
+    onEditClick: (SurveyRaw) -> Unit,
+    onDeleteClick: (SurveyRaw) -> Unit,
+    onSendClick: (SurveyRaw) -> Unit,
+    onItemClick: (SurveyRaw) -> Unit
 ) {
     LazyColumn {
         items(surveys) { survey ->

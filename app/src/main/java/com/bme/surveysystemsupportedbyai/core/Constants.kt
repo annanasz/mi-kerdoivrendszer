@@ -10,6 +10,7 @@ object Constants {
     const val INBOX_SURVEYS_SCREEN = "InboxSurveys"
     const val SURVEY_DETAILS_SCREEN = "SurveyDetails"
     const val SURVEY_EDIT_SCREEN = "SurveyEdit"
+    const val SURVEY_FILL_OUT_SCREEN = "SurveyFillOut"
     //Menu Items
     const val SIGN_OUT_ITEM = "Sign out"
 
