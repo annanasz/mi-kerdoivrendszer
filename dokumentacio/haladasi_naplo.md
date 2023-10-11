@@ -1,5 +1,18 @@
 # Haladási napló
 
+## 5. Hét
+
+Ezen a héten a következőkkel haladtam:
+
+- Fizikai eszközzel dolgozva, nem pedig emulatorral, mostmár sikerült a Firestore-al összekötni az alkalmazást, így már minden adat naprakészen a felhőben található. 
+- A kérdőíveket meg lehet tekinteni, szerkeszteni, törölni és hozzáadni kérdéseket.
+- Kicsit előre nyúlva az ütemtervben, főleg azzal haladtam, hogy ha már így belejöttem a Firestore-al való munkába, hogy el lehessen küldeni a kérdőíveket másik felhasználónak, és a címzetthez beérkezzen a kérdőív. A beérkezett kérdőívet a felhasználó már el tudja kezdeni kitölteni, és van ellenőrzés arra, hogy minden kötelező mezőt kitölt-e, csak akkor válik kattinthatóvá a kérdőív beküldése.
+- Tehát elkészítettem:
+
+  -  a kezdetleges SentSurveys képernyőt, ahol a felhasználó látja a már kiküldött kérdőíveit
+  - az InboxSurvey képernyőt, ahol a beérkezett kérdőívek láthatóak. Ha a felhasználó rákattint a kitöltés gombra az egyik kérdőíven, akkor felugrik egy kitöltés (FillOutSurvey) képernyő. Ezen már kattinthatóak a beviteli mezők.
+- Amikor egy kérdőívet elküldök, akkor csak a kérdőív id-ját adom meg, ezért fellépett az a probléma, hogy ha elküldtünk egy kérdőívet, majd azt a saját kérdőíveink közt szerkesztettük, akkor a címzett is az új verziót látta, amikor túloldalon ki akarta tölteni a kérdőívet. Ezt úgy orvosoltam, hogy egy kérdőív küldésénél készül egy másolat a kérdőívről, új id-val, és azt küldjük ki. Ennek a másolatnak viszont a creatorId-ja már 'none'-ra van állítva, hogy a MySurveys képernyőn ne jelenjen meg a felhasználónak kétszer ugyanaz a kérdőív, csak a legfrissebb formában.
+
 ## 4. Hét
 
   Ezen a héten a következőkkel haladtam:
