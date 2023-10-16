@@ -1,5 +1,26 @@
 # Haladási napló
 
+## 6. Hét
+Ezen a héten a következőkkel haladtam:
+
+- CameraX beintegrálása az alkalmazásba. Hozzáadtam egy Floating Action Buttont a saját kérdőívek (MySurveys) képernyőre, amit megnyomva felugrik a kérdőív beszkennelésre alkalmas ablak. 
+- Elkészítettem a kérdőív beszkennelésre alkalmas ablakot (ScanSurveyScreen). Ha a felhasználó nem adott engedélyt az alkalmazásnak még a kamera használatára, akkor egy engedélyérő ablak jelenik meg, és csak a megadás után lehet használni a szkennelési funkciót.
+- Ha a Szkennelés gombra nyomunk, felugrik egy AlertDialog a készített képpel, amit el lehet fogadni, vagy új képet lehet csinálni. Amiután elfogadtunk egy kérdőív képet, a szerkesztés képernyőre érkezünk, ahol a beolvasott kérdőívet szertkeszthetjük.
+- A beolvasáshoz egyelőre az MLKit TextRecognizer-ét használom, viszont ez nyomtatott szövegre van elkészítve, nem kézzel írtra. Emiatt különböző követelményeket kellett felállítani a beolvasás sikerességéhez:
+
+  - A kérdőíveket nyomtatott betűvel kell írni, minél szebben
+  - A multiple_choice típusú kérdéseknél a válaszlehetőséget O- val kell jelölni
+  - A checkbox típusú kérdéseknél a válaszlehetőséget X-szel kell jelölni (OpenCV nélkül nem tudom hogyan lehetne kis dobozkákat használni, nem találtam alakzatokat felismerő funkciót az MLKit-ben)
+  - A short_answer típusú kérdéseknél csak a kérdés szövgét kell leírni
+  - Minden kérdés meg kell legyen számozva
+  - Az első sor mindig a kérdőív címe
+  - **Kérdés:** Szükséges-e ezen fejleszteni, akár az OpenCV használatával, vagy a kézírás felismerésre valami megoldást találni, vagy kezdetleges megoldásnak ez is jó?
+
+- Mostmár működik a kérdőív manuális kitöltése, a kötelező mezők kitöltése után aktívvá válik a send gomb, és amint sikeres a válasz mentése, felugrik egy ablak, amley jelzi a művelet sikerességét.
+- A user megtekintheti azokat a kérdőíveket, és az adott váálaszokat, amelyeket ő küldött el a FilledOutSurveys képernyőn.
+
+
+
 ## 5. Hét
 
 Ezen a héten a következőkkel haladtam:
