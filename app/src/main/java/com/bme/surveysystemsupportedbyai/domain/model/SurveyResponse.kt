@@ -1,12 +1,15 @@
 package com.bme.surveysystemsupportedbyai.domain.model
 
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
-import java.security.Timestamp
+
 
 data class SurveyResponse(
-    @DocumentId var id:String,
-    val surveyId: String,
-    val userId: String,
-    val timestamp: Timestamp,
-    val answers: List<Answer>
+    @DocumentId var id:String="",
+    var surveyId: String = "",
+    var surveyTitle: String ="",
+    var userId: String ="",
+    var userEmail: String = "",
+    var timestamp: Timestamp?=null,
+    var answers: List<Answer> = listOf()
 )

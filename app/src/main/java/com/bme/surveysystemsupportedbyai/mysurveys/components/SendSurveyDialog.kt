@@ -27,15 +27,15 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.text.input.ImeAction
-import com.bme.surveysystemsupportedbyai.domain.model.SurveyRaw
+import com.bme.surveysystemsupportedbyai.domain.model.Survey
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SendSurveyDialog(
-    onSendClick: (SurveyRaw?,String) -> Unit,
+    onSendClick: (Survey?, String) -> Unit,
     onCancelClick: () -> Unit,
     emailList: String,
-    selectedSurvey: SurveyRaw?
+    selectedSurvey: Survey?
 ) {
     var textFieldState by remember { mutableStateOf(emailList) }
     val keyboardController = LocalSoftwareKeyboardController.current

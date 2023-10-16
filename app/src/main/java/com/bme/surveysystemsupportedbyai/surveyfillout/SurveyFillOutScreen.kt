@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bme.surveysystemsupportedbyai.surveyfillout.components.ClickableQuestionItem
+import com.bme.surveysystemsupportedbyai.surveyfillout.components.SentSuccessfullyAlertDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,6 +30,7 @@ fun SurveyFillOutScreen(
 ) {
     val survey by viewModel.survey
     val isSendButtonEnabled = viewModel.allRequiredQuestionsAnswered()
+    var isSentAlertDialogVisible = viewModel.done
     Scaffold(
         topBar = {
             TopAppBar(
@@ -76,7 +78,7 @@ fun SurveyFillOutScreen(
                     item {
                         Button(
                             onClick = {
-
+                                viewModel.sendFilledOutSurvey()
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -91,4 +93,7 @@ fun SurveyFillOutScreen(
             }
         }
     )
+    if(isSentAlertDialogVisible.value){
+         SentSuccessfullyAlertDialog(onDismiss = {  }, navigateBack = navigateBack)
+    }
 }

@@ -5,6 +5,7 @@ import com.bme.surveysystemsupportedbyai.core.Constants.HOME_SCREEN
 import com.bme.surveysystemsupportedbyai.core.Constants.INBOX_SURVEYS_SCREEN
 import com.bme.surveysystemsupportedbyai.core.Constants.MY_SURVEYS_SCREEN
 import com.bme.surveysystemsupportedbyai.core.Constants.REGISTER_SCREEN
+import com.bme.surveysystemsupportedbyai.core.Constants.SCAN_SURVEY_SCREEN
 import com.bme.surveysystemsupportedbyai.core.Constants.SENT_SURVEYS_SCREEN
 import com.bme.surveysystemsupportedbyai.core.Constants.SIGN_IN_SCREEN
 import com.bme.surveysystemsupportedbyai.core.Constants.SURVEY_DETAILS_SCREEN
@@ -22,4 +23,6 @@ sealed class Screen(val route: String) {
     object SurveyDetailsScreen: Screen(SURVEY_DETAILS_SCREEN)
     object SurveyEditScreen: Screen(SURVEY_EDIT_SCREEN)
     object SurveyFillOutScreen: Screen(SURVEY_FILL_OUT_SCREEN)
+    object ScanSurveyScreen: Screen(SCAN_SURVEY_SCREEN)
+    object ScannedSurveyScreen: Screen(SCAN_SURVEY_SCREEN)
 }

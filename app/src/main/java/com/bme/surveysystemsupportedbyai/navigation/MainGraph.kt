@@ -2,7 +2,6 @@ package com.bme.surveysystemsupportedbyai.navigation
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.ExperimentalComposeApi
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -10,12 +9,13 @@ import com.bme.surveysystemsupportedbyai.core.Constants
 import com.bme.surveysystemsupportedbyai.filledoutsurveys.FilledOutSurveyScreen
 import com.bme.surveysystemsupportedbyai.inboxsurveys.InboxSurveyScreen
 import com.bme.surveysystemsupportedbyai.mysurveys.MySurveysSurveyScreen
+import com.bme.surveysystemsupportedbyai.scansurveyscreen.ScanSurveyScreen
 import com.bme.surveysystemsupportedbyai.sentsurveys.SentSurveysSurveyScreen
 import com.bme.surveysystemsupportedbyai.surveyDetails.SurveyDetailsScreen
 import com.bme.surveysystemsupportedbyai.surveyedit.SurveyEditScreen
 import com.bme.surveysystemsupportedbyai.surveyfillout.SurveyFillOutScreen
 
-@OptIn(ExperimentalComposeApi::class)
+
 @Composable
 fun MainGraph(
     navController: NavHostController, paddingValues: PaddingValues
@@ -28,7 +28,7 @@ fun MainGraph(
         composable(
             route = Screen.MySurveysScreen.route
         ) {
-            MySurveysSurveyScreen(openDetailsScreen = { route -> navController.navigate(route) })
+            MySurveysSurveyScreen(openDetailsScreen = { route -> navController.navigate(route) }, openScanSurveyScreen = {navController.navigate(Screen.ScanSurveyScreen.route)}, paddingValues)
         }
         composable(
             route = Screen.SentSurveysScreen.route
@@ -51,14 +51,32 @@ fun MainGraph(
             })
         }
         composable("${Screen.SurveyEditScreen.route}$SURVEY_ID_ARG") {
-            SurveyEditScreen(navigateBack = {
-                navController.popBackStack()
-            })
+            val previousDestination = navController.previousBackStackEntry?.destination?.route
+
+            val navigateBack: () -> Unit = when (previousDestination) {
+                Screen.MySurveysScreen.route -> {
+                    { navController.popBackStack() }
+                }
+                else -> {
+                    { navController.navigate(Screen.ScanSurveyScreen.route) }
+                }
+            }
+            val deleteSurvey: Boolean = when(previousDestination){
+                Screen.MySurveysScreen.route -> false
+                else -> true
+            }
+
+            SurveyEditScreen(navigateBack = navigateBack, deleteSurvey = deleteSurvey)
         }
         composable("${Screen.SurveyFillOutScreen.route}$SURVEY_ID_ARG") {
             SurveyFillOutScreen(navigateBack = {
                 navController.popBackStack()
             })
+        }
+        composable(Screen.ScanSurveyScreen.route){
+            ScanSurveyScreen(navigateBack = {
+                navController.navigate(Screen.MySurveysScreen.route)
+            }, openDetailsScreen = { route -> navController.navigate(route) })
         }
     }
 }

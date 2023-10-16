@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bme.surveysystemsupportedbyai.domain.model.ReceivedSurvey
 import com.bme.surveysystemsupportedbyai.domain.model.SentSurvey
-import com.bme.surveysystemsupportedbyai.domain.model.SurveyRaw
+import com.bme.surveysystemsupportedbyai.domain.model.Survey
 import com.bme.surveysystemsupportedbyai.domain.repository.AuthRepository
 import com.bme.surveysystemsupportedbyai.domain.repository.SurveysRepository
 import com.bme.surveysystemsupportedbyai.navigation.Screen
@@ -22,23 +22,23 @@ class MySurveysViewModel @Inject constructor(
     val isEmailVerified get() = authRepository.currentUser?.isEmailVerified ?: false
 
     fun signOut() = authRepository.signOut()
-    fun onEditClick(survey: SurveyRaw, openScreen: (String) -> Unit) {
+    fun onEditClick(survey: Survey, openScreen: (String) -> Unit) {
         openScreen("${Screen.SurveyEditScreen.route}?$SURVEY_ID={${survey.id}}")
     }
 
-    fun onDeleteClick(survey: SurveyRaw) {
+    fun onDeleteClick(survey: Survey) {
         viewModelScope.launch {
             surveysRepository.deleteSurvey(survey.id)
         }
     }
 
-    fun onItemClick(survey: SurveyRaw, openScreen: (String) -> Unit) {
+    fun onItemClick(survey: Survey, openScreen: (String) -> Unit) {
         openScreen("${Screen.SurveyDetailsScreen.route}?$SURVEY_ID={${survey.id}}")
     }
 
-    fun onSendSurveyClick(survey: SurveyRaw?, emails: String) {
+    fun onSendSurveyClick(survey: Survey?, emails: String) {
         if (survey == null)
-            return;
+            return
         val emailsList = emails.split(',').map { it.trim() }
         val sentSurvey = SentSurvey(
             surveyId = survey.id,

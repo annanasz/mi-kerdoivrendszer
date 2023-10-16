@@ -3,7 +3,8 @@ package com.bme.surveysystemsupportedbyai.data.repository
 import com.bme.surveysystemsupportedbyai.domain.model.Question
 import com.bme.surveysystemsupportedbyai.domain.model.ReceivedSurvey
 import com.bme.surveysystemsupportedbyai.domain.model.SentSurvey
-import com.bme.surveysystemsupportedbyai.domain.model.SurveyRaw
+import com.bme.surveysystemsupportedbyai.domain.model.Survey
+import com.bme.surveysystemsupportedbyai.domain.model.SurveyResponse
 import com.bme.surveysystemsupportedbyai.domain.repository.AuthRepository
 import com.bme.surveysystemsupportedbyai.domain.repository.SurveysRepository
 import com.google.firebase.firestore.FirebaseFirestore
@@ -22,24 +23,15 @@ class SurveysRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val auth: AuthRepository
 ) : SurveysRepository {
-
-    init{
-//        val settings = firestoreSettings {
-//            setLocalCacheSettings(memoryCacheSettings {})
-//        }
-//        firestore.firestoreSettings = settings
-//        //firestore.clearPersistence()
-    }
-    override val userSurveys: Flow<List<SurveyRaw>>
+    override val userSurveys: Flow<List<Survey>>
         get() = firestore.collection(SURVEYS_COLLECTION)
             .whereEqualTo(CREATOR_ID_FIELD, auth.currentUser?.uid)
             .orderBy("timestamp", Query.Direction.DESCENDING)
-            // Order by timestamp in descending order
-            .dataObjects<SurveyRaw>()
+            .dataObjects<Survey>()
 
-    override suspend fun getSurvey(surveyId: String): SurveyRaw? {
+    override suspend fun getSurvey(surveyId: String): Survey? {
         val surveyDoc = firestore.collection(SURVEYS_COLLECTION).document(surveyId).get().await()
-        val survey = surveyDoc.toObject<SurveyRaw>()
+        val survey = surveyDoc.toObject<Survey>()
 
         if (survey != null) {
             val questionsDoc = surveyDoc.reference
@@ -54,20 +46,19 @@ class SurveysRepositoryImpl @Inject constructor(
         return null
     }
 
-    override suspend fun updateSurvey(survey: SurveyRaw) {
+    override suspend fun updateSurvey(survey: Survey) {
         val surveyRef = firestore.collection(SURVEYS_COLLECTION).document(survey.id)
         val questionsCollectionRef = surveyRef.collection(QUESTIONS_COLLECTION)
-        for (question in survey.questions.orEmpty()) {
+        for (question in survey.questions) {
             if (question.id != "") {
                 val questionRef = surveyRef.collection(QUESTIONS_COLLECTION).document(question.id)
-                questionRef.update("text", question.text, "options", question.options)
+                questionRef.update("text", question.text, "options",question.options)
                     .await()
             }
             else{
                 val newQuestionRef = questionsCollectionRef.document()
                 val newQuestion = question.copy(id = newQuestionRef.id, timestamp = Timestamp.now())
-                newQuestionRef.set(newQuestion)
-                    .await()
+                newQuestionRef.set(newQuestion).await()
 
                 question.id = newQuestionRef.id
             }
@@ -77,18 +68,24 @@ class SurveysRepositoryImpl @Inject constructor(
         val existingQuestionsSnapshot = questionsCollectionRef.get().await()
         for (document in existingQuestionsSnapshot.documents) {
             val questionId = document.id
-            if (survey.questions?.none { it.id == questionId } == true) {
+            if (survey.questions?.none { it.id == questionId } ?: false) {
                 questionsCollectionRef.document(questionId).delete().await()
             }
         }
     }
 
-    override suspend fun saveSurvey(survey: SurveyRaw) {
-        val taskWithUserId = survey.copy(creatorId = auth.currentUser!!.uid)
-        firestore.collection(SURVEYS_COLLECTION).add(taskWithUserId).await().id
-    }
+
     override suspend fun deleteSurvey(surveyId: String) {
         firestore.collection(SURVEYS_COLLECTION).document(surveyId).delete().await()
+        val questionsCollection = firestore.collection(SURVEYS_COLLECTION)
+            .document(surveyId)
+            .collection(QUESTIONS_COLLECTION)
+
+        val questionsQuerySnapshot = questionsCollection.get().await()
+
+        for (document in questionsQuerySnapshot.documents) {
+            document.reference.delete()
+        }
     }
 
     override suspend fun saveSentSurvey(sentSurvey: SentSurvey) {
@@ -114,19 +111,31 @@ class SurveysRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun fillOutSurvey(surveyResponse: SurveyResponse):Boolean {
+        val surveyResponseWithId = surveyResponse.copy(userId = auth.currentUser!!.uid, timestamp = Timestamp.now(), userEmail = auth.currentUser!!.email!!)
+        val surveyResponseRef = firestore.collection(RESPONSES_COLLECTION).document()
+        val surveyResponseId = surveyResponseRef.id
+        val responseToSave = saveFillOutSurveyAnswers(surveyResponseWithId, responseId = surveyResponseId)
+        surveyResponseRef.set(responseToSave).await()
+        return true
+    }
+
     override val receivedSurveys: Flow<List<ReceivedSurvey>>
         get() = firestore.collection(RECEIVED_SURVEYS_COLLECTION)
             .whereEqualTo(RECIPIENT_EMAIL_FIELD, auth.currentUser?.email)
             .whereEqualTo(FILLED_FIELD, false)
             .orderBy("timestamp", Query.Direction.DESCENDING)
-            .dataObjects<ReceivedSurvey>()
-    override val filledOutSurveys: Flow<List<SurveyRaw>>
-        get() = TODO("Not yet implemented")
+            .dataObjects()
+    override val filledOutSurveys: Flow<List<SurveyResponse>>
+        get() = firestore.collection(RESPONSES_COLLECTION)
+            .whereEqualTo(USER_ID_FIELD, auth.currentUser?.uid)
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .dataObjects()
 
     suspend fun editSurveyOnSend(id: String){
         val originalSurveyDocRef = firestore.collection(SURVEYS_COLLECTION).document(id)
         val originalSurveyDoc = originalSurveyDocRef.get().await()
-        val originalSurveyData = originalSurveyDoc.toObject<SurveyRaw>()
+        val originalSurveyData = originalSurveyDoc.toObject<Survey>()
 
         if(originalSurveyData!=null){
             val newSurveyRef = firestore.collection(SURVEYS_COLLECTION).document()
@@ -136,18 +145,41 @@ class SurveysRepositoryImpl @Inject constructor(
             originalSurveyDocRef.update("creatorId", "none").await()
         }
     }
-    private suspend fun copySurveyWithQuestions(originalSurvey: SurveyRaw, newSurveyId: String): SurveyRaw {
+    override suspend fun saveSurvey(survey: Survey):String {
+        val surveyWithUserId = survey.copy(creatorId = auth.currentUser!!.uid, timestamp = Timestamp.now())
+        val surveyRef = firestore.collection(SURVEYS_COLLECTION).document()
+        val surveyId = surveyRef.id
+        val copiedSurveyData = copySurveyWithQuestions(surveyWithUserId, surveyId, true)
+        surveyRef.set(copiedSurveyData).await()
+        return surveyId
+    }
+    private suspend fun copySurveyWithQuestions(originalSurvey: Survey, newSurveyId: String, timestampNeeded:Boolean=false): Survey {
         val copiedSurveyData = originalSurvey.copy(id = newSurveyId)
         val copiedQuestions = originalSurvey.questions.map { originalQuestion ->
             val newQuestionRef = firestore.collection(SURVEYS_COLLECTION).document(newSurveyId)
                 .collection(QUESTIONS_COLLECTION).document()
             val newQuestionId = newQuestionRef.id
-            val newQuestionData = originalQuestion.copy(id = newQuestionId)
+            val newQuestionData = when(timestampNeeded){
+                true ->  originalQuestion.copy(id = newQuestionId, timestamp = Timestamp.now())
+                else ->  originalQuestion.copy(id = newQuestionId)
+            }
             newQuestionRef.set(newQuestionData).await()
             newQuestionData
         }
 
         return copiedSurveyData.copy(questions = copiedQuestions)
+    }
+
+    private suspend fun saveFillOutSurveyAnswers(originalSurveyResponse: SurveyResponse, responseId:String):SurveyResponse{
+        val newAnswers = originalSurveyResponse.answers.map{answer->
+            val newAnswerRef = firestore.collection(RESPONSES_COLLECTION).document(responseId).collection(
+                ANSWER_COLLECTION).document()
+            val newAnswerId = newAnswerRef.id
+            val newAnswerData = answer.copy(id = newAnswerId)
+            newAnswerRef.set(newAnswerData).await()
+            newAnswerData
+        }
+        return originalSurveyResponse.copy(id = responseId, answers = newAnswers)
     }
 
 
@@ -160,5 +192,8 @@ class SurveysRepositoryImpl @Inject constructor(
         private const val RECIPIENT_EMAIL_FIELD = "recipientEmail"
         private const val FILLED_FIELD = "filled"
         private const val SENDER_ID_FIELD = "senderId"
+        private const val RESPONSES_COLLECTION = "responses"
+        private const val ANSWER_COLLECTION = "answers"
+        private const val USER_ID_FIELD = "userId"
     }
 }

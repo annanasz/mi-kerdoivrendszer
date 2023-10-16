@@ -33,7 +33,8 @@ import com.bme.surveysystemsupportedbyai.surveyedit.components.SurveyQuestionCar
 @Composable
 fun SurveyEditScreen(
     viewModel: SurveyEditViewModel = hiltViewModel(),
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
+    deleteSurvey: Boolean = false
 ) {
     val survey by viewModel.survey
 
@@ -41,7 +42,7 @@ fun SurveyEditScreen(
 
     Scaffold(topBar = {
         SurveyEditTopBar(survey = survey,
-            navigateBack = { navigateBack() },
+            navigateBack = { viewModel.onBackClick(navigateBack,deleteSurvey) },
             addQuestion = { isDialogOpen = true })
     }, content = { padding ->
         Box(

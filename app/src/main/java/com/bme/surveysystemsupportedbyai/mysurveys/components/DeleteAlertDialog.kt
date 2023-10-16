@@ -5,15 +5,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import com.bme.surveysystemsupportedbyai.domain.model.SurveyRaw
+import com.bme.surveysystemsupportedbyai.domain.model.Survey
 
 @Composable
 fun DeleteAlertDialog(
-    onDeleteClick: (SurveyRaw) -> Unit,
-    surveyToDelete: SurveyRaw?,
+    onDeleteClick: (Survey) -> Unit,
+    surveyToDelete: Survey?,
     onDismiss: () -> Unit
 ) {
-    val context = LocalContext.current
 
     if (surveyToDelete != null) {
         AlertDialog(

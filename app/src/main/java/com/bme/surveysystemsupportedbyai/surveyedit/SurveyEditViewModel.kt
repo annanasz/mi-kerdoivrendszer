@@ -5,7 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bme.surveysystemsupportedbyai.domain.model.Question
-import com.bme.surveysystemsupportedbyai.domain.model.SurveyRaw
+import com.bme.surveysystemsupportedbyai.domain.model.Survey
 import com.bme.surveysystemsupportedbyai.domain.repository.SurveysRepository
 import com.bme.surveysystemsupportedbyai.navigation.SURVEY_ID
 import com.bme.surveysystemsupportedbyai.surveyDetails.idFromParameter
@@ -18,14 +18,14 @@ class SurveyEditViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val surveysRepository: SurveysRepository
 ) : ViewModel() {
-    val survey = mutableStateOf(SurveyRaw())
+    val survey = mutableStateOf(Survey())
 
     init {
         val surveyId =savedStateHandle.get<String>(SURVEY_ID) //"GKRvrEUl5u80XHJNMbqT"
         if (surveyId != null) {
             viewModelScope.launch {
                 survey.value =
-                    surveysRepository.getSurvey(surveyId.idFromParameter()) ?: SurveyRaw()
+                    surveysRepository.getSurvey(surveyId.idFromParameter()) ?: Survey()
             }
         }
     }
@@ -121,5 +121,13 @@ class SurveyEditViewModel @Inject constructor(
             }
             popUpScreen()
         }
+    }
+
+    fun onBackClick(navigateBack: ()->Unit, deleteSurvey: Boolean){
+        if(deleteSurvey && survey.value.id.isNotEmpty())
+            viewModelScope.launch {
+                surveysRepository.deleteSurvey(survey.value.id)
+            }
+        navigateBack()
     }
 }

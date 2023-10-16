@@ -21,15 +21,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.ui.text.font.FontWeight
-import com.bme.surveysystemsupportedbyai.domain.model.SurveyRaw
+import com.bme.surveysystemsupportedbyai.domain.model.Survey
 
 @Composable
 fun SurveyItem(
-    survey: SurveyRaw,
-    onEditClick: (SurveyRaw) -> Unit,
-    onDeleteClick: (SurveyRaw) -> Unit,
-    onSendClick: (SurveyRaw) -> Unit,
-    onItemClick: (SurveyRaw) -> Unit
+    survey: Survey,
+    onEditClick: (Survey) -> Unit,
+    onDeleteClick: (Survey) -> Unit,
+    onSendClick: (Survey) -> Unit,
+    onItemClick: (Survey) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -54,7 +54,7 @@ fun SurveyItem(
         ) {
             // Display the timestamp
             Text(
-                text = survey.timestamp.toString(),
+                text = survey.timestamp?.toDate().toString(),
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp
             )
@@ -93,11 +93,11 @@ fun SurveyItem(
 @Composable
 fun SurveyList(
     //surveys: State<List<Survey>>,
-    surveys: List<SurveyRaw>,
-    onEditClick: (SurveyRaw) -> Unit,
-    onDeleteClick: (SurveyRaw) -> Unit,
-    onSendClick: (SurveyRaw) -> Unit,
-    onItemClick: (SurveyRaw) -> Unit
+    surveys: List<Survey>,
+    onEditClick: (Survey) -> Unit,
+    onDeleteClick: (Survey) -> Unit,
+    onSendClick: (Survey) -> Unit,
+    onItemClick: (Survey) -> Unit
 ) {
     LazyColumn {
         items(surveys) { survey ->

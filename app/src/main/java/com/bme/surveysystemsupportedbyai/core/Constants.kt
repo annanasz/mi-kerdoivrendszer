@@ -11,12 +11,10 @@ object Constants {
     const val SURVEY_DETAILS_SCREEN = "SurveyDetails"
     const val SURVEY_EDIT_SCREEN = "SurveyEdit"
     const val SURVEY_FILL_OUT_SCREEN = "SurveyFillOut"
+    const val SCAN_SURVEY_SCREEN = "ScanSurvey"
     //Menu Items
     const val SIGN_OUT_ITEM = "Sign out"
 
-    //nested navgraph names
-    const val AUTH_NESTED_ROUTE = "auth"
-    const val HOME_NESTED_ROUTE = "home_nested"
 
     const val EMAIL_LABEL = "Email"
     const val PASSWORD_LABEL = "Password"
@@ -39,5 +37,7 @@ object Constants {
     const val WELCOME_MY_SURVEYS = "Welcome to my surveys."
     const val WELCOME_SENT_SURVEYS = "Welcome to sent surveys."
     const val WELCOME_INBOX = "Welcome to inbox surveys."
+
+    const val SCAN_MESSAGE="Scan your survey"
 
 }
