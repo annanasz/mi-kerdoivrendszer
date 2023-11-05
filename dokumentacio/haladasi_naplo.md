@@ -1,5 +1,32 @@
 # Haladási napló
 
+## 8.-9. Hét
+
+
+Ebben a két hétben sikerült befejeznem a tervezett funkciókat az alkalmazásban, már csak kisebb széítgetések és finomítások maradtak. A következőkkel haladtam:
+- A kérdőív **szóban való kitöltésével** kapcsolatban lett a legnagyobb előrelépés. 
+    - Úgy működik, hogy felolvasásra kerül egy kérdés, majd várjuk a felhasználótól a választ. Ha inaktív a felhasználó, akkor egy gomb megnyomásával folytathatja a kitültést onnan, ahol abbahagyta. 
+    - A válasz után a kérdést, az opciókat és az adott választ **openAI completion API** hívást alkalmazva elküldöm majd várok a válaszra. Ha nem érkezik 1 percen belül válasz, akkor újraküldöm a kérést, mert tapasztaltam, hogy elég gyakran előfordul, hogy nem érkezik időben válasz, és timeout exceptiont kapok. Így maximum 3-szor kerül újraküldésre a kérés, azután szól az alkalmazás, hogy most nem elérhető ez a funkció. De olyannal nem találkoztam még, hogy a 3 kérés ne lett volna elég.
+    - Miután megjön a válasz, konfirmáció képpen felolvassuk a felhasználónak az általunk gondolt választ, majd rákérdezünk, hogy ez így helyes-e. Ha nem a válasz, akkor újra felolvasásra kerül a kérdés, ha igen akkor megyünk tovább.
+    - Amikor a kérdőív végére érünk, megkérdezzük a felhasználót, hogy elküldhetjük-e a kérdőívet. Ha igen a válasz, visszaküldjük a választ a küldőnek.
+    - A kitöltés során a képernyőn látszik az aktuális kérdés, a felismert szöveg, valamint az állapottól függően egy ikon. Üdvözléskor egy integető kéz, amikor a "telefon" beszél akkor egy hangerő ikon, amikor a felhasználó beszél egy mikrofon, és ha éppen a válasz feldolgozására várunk (API hívás), akkor egy töltőikon.
+    - Kitöltés során bármikor meg lehet állítani, vagy újra elindítani a kitöltést a Pause és Resume gombokkal.
+
+- Készen lett az **elküldött kérdőívek képernyő** is. Itt látja a felhasználó az általa elküldött kérdőívek listáját. Egyik elemre kattintva megtekintheti a részleteit. Itt az egyik tabon megnézhető a kérdőív, a másik tabon pedig láthatóak a már visszaküldött válaszok.
+
+- Megcsináltam azt is, hogy amikor szkennelümnk egy kérdőívet, akkor a kép elkészítése után felugró ablakban, ahol el lehet fogadni a készült képet, azt is meg lehet adni egy CheckBox segítségével, hogy **csupa nagybetűvel** írtuk-e a kérdőívet. Ha igen, akkor kisbetüsíti azt, és úgy menti el a kérdőívet. Ha nagy betűvel írunk kézzel, azt sokkal jobban felismeri, mint a sima nyomtatott betűvel való írást.
+
+- Ezeken kívül tettem még **töltő ikonokat** sok helyre az alkalmazásba (ahol érezhetően sok ideig volt fehér kép az adatok ebtöltődése előtt), így kicsit több visszajelzést adva a felhasználónak, mint ami eddig volt. 
+
+## 7. Hét
+
+Ezen a héten a következőkkel haladtam:
+
+- Hozzáadtam a kérdőív szerkesztő képernyőhöz egy új gombot, amely segítségével új kérdéseket adhatunk hozzá a kérdőívhez kamerával való szkennelés segítségével. Így ha hosszabb kérdőívről is van szó, és nem fér bele egy képbe, akkor is lehessen szkennelni.
+- Beüzemeltem a SpeechRecognizer és TexToSpeech funkciókat, így már felismerhető a felhasználó válasza, valamint a kérdések is felolvasásra kerülnek a megfelelő sorrendben, Egyelőre úgy működik a szóban való kitöltés, hogy felolvasódik a kérdés, majd várjuk a választ, és a választól függetlenül megyünk a következő kérdésre
+- Inkativitás esetén, ha a felhasználó nem válaszol időben, akkor felolvasásra kerül egy szöveg, majd csak a "Resume" gomb megnyomásával lehet folytatni a kitöltést. 
+- Ha a SentsSurveys képernyőn rákattintunk egy elemre, akkor egy következő képernyőn találjuk magunkat, ahol egyelőre egy TabRow van, 2 Tabbel. Itt majd meg lehet tekinteni az adott elküldött kérdőívet a Survey tab-en, valamint a Results tab-en a beküldött válaszokat.
+
 ## 6. Hét
 Ezen a héten a következőkkel haladtam:
 
