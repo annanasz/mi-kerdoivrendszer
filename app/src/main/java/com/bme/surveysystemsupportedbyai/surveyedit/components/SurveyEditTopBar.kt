@@ -3,6 +3,7 @@ package com.bme.surveysystemsupportedbyai.surveyedit.components
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CameraEnhance
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -16,7 +17,9 @@ import com.bme.surveysystemsupportedbyai.domain.model.Survey
 fun SurveyEditTopBar(
     survey: Survey,
     navigateBack: () -> Unit,
-    addQuestion: () -> Unit
+    addQuestion: () -> Unit,
+    scanQuestion:()-> Unit,
+    isAvailable: Boolean
 ) {
     TopAppBar(
         title = { Text(text = survey.title) },
@@ -26,8 +29,11 @@ fun SurveyEditTopBar(
             }
         },
         actions = {
-            IconButton(onClick = { addQuestion() }) {
+            IconButton(onClick = { addQuestion() }, enabled = isAvailable) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = "Add Question")
+            }
+            IconButton(onClick = { scanQuestion() }, enabled = isAvailable) {
+                Icon(imageVector = Icons.Default.CameraEnhance, contentDescription ="Scan questions")
             }
         }
     )

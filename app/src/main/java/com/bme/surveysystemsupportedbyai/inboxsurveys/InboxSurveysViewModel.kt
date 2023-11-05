@@ -12,13 +12,15 @@ import javax.inject.Inject
 @HiltViewModel
 class InboxSurveysViewModel @Inject constructor(
     private val repo: AuthRepository,
-    private val surveysRepository: SurveysRepository
+    surveysRepository: SurveysRepository
 ): ViewModel() {
 
     val receivedSurveys = surveysRepository.receivedSurveys
-    val isEmailVerified get() = repo.currentUser?.isEmailVerified ?: false
     fun onFillOutClick(receivedSurvey: ReceivedSurvey, openFillOutScreen: (String) -> Unit){
         openFillOutScreen("${Screen.SurveyFillOutScreen.route}?$SURVEY_ID={${receivedSurvey.surveyId}}")
+    }
+    fun onFillOutWithSpeechClick(receivedSurvey: ReceivedSurvey, openFillOutScreen: (String) -> Unit){
+        openFillOutScreen("${Screen.FillOutSurveyWithSpeechScreen.route}?$SURVEY_ID={${receivedSurvey.surveyId}}")
     }
     fun signOut() = repo.signOut()
 

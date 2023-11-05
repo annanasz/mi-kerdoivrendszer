@@ -42,6 +42,9 @@ fun InboxSurveyScreen(
                         receivedSurvey,
                         openFillOutScreen
                     )
+                },
+                onFillOutWithSpeechClick ={receivedSurvey ->
+                    viewModel.onFillOutWithSpeechClick(receivedSurvey, openFillOutScreen)
                 })
         }
     }

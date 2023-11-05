@@ -34,61 +34,73 @@ fun SurveyItem(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 2.dp, vertical = 2.dp)
+//            .padding(horizontal = 2.dp, vertical = 2.dp)
             .border(
-                border = BorderStroke(1.dp, Color.Black), // Adjust the color and width as needed
-                shape = RoundedCornerShape(8.dp) // Adjust the shape as needed
+                border = BorderStroke(1.dp, Color.Black),
+                shape = RoundedCornerShape(8.dp)
             )
             .clickable { onItemClick(survey) }
     ) {
         Text(
             text = survey.title,
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
             fontWeight = FontWeight.Bold,
-            fontSize = 18.sp
+            fontSize = 20.sp
         )
-        Spacer(modifier = Modifier.height(8.dp))
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            horizontalArrangement = Arrangement.End,
+            modifier = Modifier.fillMaxWidth().padding(0.dp)
+        ) {
+            IconButton(
+                onClick = { onEditClick(survey) },
+                modifier = Modifier.padding(0.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    tint = Color.Gray,
+                    modifier = Modifier.padding(4.dp)
+                )
+            }
+            IconButton(
+                onClick = { onDeleteClick(survey) },
+                modifier = Modifier.padding(0.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = Color.Gray,
+                    modifier = Modifier.padding(4.dp)
+                )
+            }
+            IconButton(
+                onClick = { onSendClick(survey) },
+                modifier = Modifier.padding(0.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Send,
+                    contentDescription = "Send",
+                    tint = Color.Gray,
+                    modifier = Modifier.padding(4.dp)
+                )
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(0.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             // Display the timestamp
             Text(
                 text = survey.timestamp?.toDate().toString(),
                 fontWeight = FontWeight.Normal,
-                fontSize = 14.sp
+                fontSize = 14.sp,
+                modifier = Modifier.padding(horizontal = 4.dp)
             )
-            // Display edit, delete, and send buttons as icons
-            IconButton(
-                onClick = { onEditClick(survey) }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit",
-                    tint = Color.Gray
-                )
-            }
-            IconButton(
-                onClick = { onDeleteClick(survey) }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete",
-                    tint = Color.Gray
-                )
-            }
-            IconButton(
-                onClick = { onSendClick(survey) }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Send,
-                    contentDescription = "Send",
-                    tint = Color.Gray
-                )
-            }
         }
+
     }
 }
+
 
 @Composable
 fun SurveyList(
@@ -109,13 +121,5 @@ fun SurveyList(
                 onItemClick = onItemClick
             )
         }
-//        items(surveys.value, key = { it.id }) { survey ->
-//            SurveyItem(
-//                survey = survey,
-//                onEditClick = onEditClick,
-//                onDeleteClick = onDeleteClick,
-//                onSendClick = onSendClick
-//            )
-//        }
     }
 }

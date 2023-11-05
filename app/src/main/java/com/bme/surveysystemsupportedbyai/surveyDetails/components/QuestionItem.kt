@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bme.surveysystemsupportedbyai.domain.model.Answer
 import com.bme.surveysystemsupportedbyai.domain.model.Question
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,7 +27,8 @@ fun QuestionItem(
     question: Question,
     selectedOptions: List<String>,
     onOptionSelected: (String) -> Unit,
-    questionNumber: Int
+    questionNumber: Int,
+    response: Answer? = null
 ) {
     Column(
         modifier = Modifier
@@ -60,7 +62,7 @@ fun QuestionItem(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
-                            selected = selectedOptions.contains(option),
+                            selected = response?.response?.contains(option) == true,
                             onClick = { onOptionSelected(option) },
                             modifier = Modifier.padding(end = 8.dp)
                         )
@@ -75,7 +77,7 @@ fun QuestionItem(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
-                            checked = selectedOptions.contains(option),
+                            checked = response?.response?.contains(option) == true,
                             onCheckedChange = { isChecked ->
                                 if (isChecked) onOptionSelected(option)
                             },
@@ -87,7 +89,7 @@ fun QuestionItem(
             }
             "short_answer" -> {
                 OutlinedTextField(
-                    value = "Response here",
+                    value = response?.response?.getOrNull(0) ?:"Response here",
                     onValueChange = { /* Nothing to do here as it's read-only */ },
                     enabled = false,
                     singleLine = false,

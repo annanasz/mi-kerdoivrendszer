@@ -11,5 +11,5 @@ data class SurveyResponse(
     var userId: String ="",
     var userEmail: String = "",
     var timestamp: Timestamp?=null,
-    var answers: List<Answer> = listOf()
+    var answers: List<Answer?> = listOf()
 )

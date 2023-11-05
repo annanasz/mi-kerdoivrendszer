@@ -130,4 +130,8 @@ class SurveyEditViewModel @Inject constructor(
             }
         navigateBack()
     }
+
+    fun scanQuestion(openScanner: (String)->Unit){
+        openScanner(survey.value.id)
+    }
 }

@@ -9,12 +9,14 @@ import com.bme.surveysystemsupportedbyai.domain.model.ReceivedSurvey
 fun InboxSurveyList(
     surveys: List<ReceivedSurvey>,
     onFillOutClick: (ReceivedSurvey) -> Unit,
+    onFillOutWithSpeechClick: (ReceivedSurvey) -> Unit,
 ) {
     LazyColumn {
         items(surveys) { survey ->
             InboxSurveyItem(
                 survey = survey,
-                onFillOutClick = onFillOutClick
+                onFillOutClick = onFillOutClick,
+                onFillOutWithSpeechClick =onFillOutWithSpeechClick
             )
         }
     }

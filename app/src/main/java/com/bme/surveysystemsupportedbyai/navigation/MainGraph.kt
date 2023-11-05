@@ -3,13 +3,18 @@ package com.bme.surveysystemsupportedbyai.navigation
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.bme.surveysystemsupportedbyai.core.Constants
 import com.bme.surveysystemsupportedbyai.filledoutsurveys.FilledOutSurveyScreen
+import com.bme.surveysystemsupportedbyai.filloutwithspeech.FillOutWithSpeechScreen
 import com.bme.surveysystemsupportedbyai.inboxsurveys.InboxSurveyScreen
 import com.bme.surveysystemsupportedbyai.mysurveys.MySurveysSurveyScreen
+import com.bme.surveysystemsupportedbyai.mysurveys.SURVEY_ID
 import com.bme.surveysystemsupportedbyai.scansurveyscreen.ScanSurveyScreen
+import com.bme.surveysystemsupportedbyai.sentsurveydetails.SentSurveyDetailsScreen
 import com.bme.surveysystemsupportedbyai.sentsurveys.SentSurveysSurveyScreen
 import com.bme.surveysystemsupportedbyai.surveyDetails.SurveyDetailsScreen
 import com.bme.surveysystemsupportedbyai.surveyedit.SurveyEditScreen
@@ -28,58 +33,111 @@ fun MainGraph(
         composable(
             route = Screen.MySurveysScreen.route
         ) {
-            MySurveysSurveyScreen(openDetailsScreen = { route -> navController.navigate(route) }, openScanSurveyScreen = {navController.navigate(Screen.ScanSurveyScreen.route)}, paddingValues)
+            MySurveysSurveyScreen(openDetailsScreen = { route -> navController.navigate(route) }, openScanSurveyScreen = {navController.navigate("${Screen.ScanSurveyScreen.route}?$SURVEY_ID=${""}")}, paddingValues)
         }
         composable(
             route = Screen.SentSurveysScreen.route
         ) {
-            SentSurveysSurveyScreen()
+            SentSurveysSurveyScreen(openDetailsScreen = { surveyId -> navController.navigate("${Screen.SentSurveyDetailsScreen.route}?$SURVEY_ID=${surveyId}") })
         }
         composable(
             route = Screen.FilledOutSurveysScreen.route
         ) {
-            FilledOutSurveyScreen()
+            FilledOutSurveyScreen(openDetailsScreen = { route -> navController.navigate(route) })
         }
         composable(
             route = Screen.InboxSurveysScreen.route
         ) {
             InboxSurveyScreen(openFillOutScreen = { route -> navController.navigate(route) })
         }
-        composable("${Screen.SurveyDetailsScreen.route}$SURVEY_ID_ARG") {
-            SurveyDetailsScreen(navigateBack = {
-                navController.popBackStack()
-            })
-        }
+//        composable("${Screen.SurveyDetailsScreen.route}$SURVEY_ID_ARG") {
+//            SurveyDetailsScreen(navigateBack = {
+//                navController.popBackStack()
+//            })
+//        }
         composable("${Screen.SurveyEditScreen.route}$SURVEY_ID_ARG") {
             val previousDestination = navController.previousBackStackEntry?.destination?.route
+            navController.previousBackStackEntry?.destination?.arguments?.get(
+                SURVEY_ID)
 
             val navigateBack: () -> Unit = when (previousDestination) {
                 Screen.MySurveysScreen.route -> {
                     { navController.popBackStack() }
                 }
-                else -> {
-                    { navController.navigate(Screen.ScanSurveyScreen.route) }
+                "ScanSurvey?surveyId={surveyId}" ->{
+                    {
+                        navController.navigate("${Screen.ScanSurveyScreen.route}$SURVEY_ID_ARG")
+                    }
                 }
+                else -> {
+
+                    {navController.navigate(Screen.MySurveysScreen.route)}                }
             }
             val deleteSurvey: Boolean = when(previousDestination){
-                Screen.MySurveysScreen.route -> false
-                else -> true
+                "ScanSurvey?surveyId={surveyId}" -> {true}
+                else -> {false}
             }
 
-            SurveyEditScreen(navigateBack = navigateBack, deleteSurvey = deleteSurvey)
+            SurveyEditScreen(navigateBack = navigateBack, navigateToMySurveys = {
+                navController.navigate(
+                    Screen.MySurveysScreen.route
+                )
+            }, openScanner={surveyId -> navController.navigate("${Screen.ScanSurveyScreen.route}?$SURVEY_ID=${surveyId}")}, deleteSurvey = deleteSurvey)
         }
         composable("${Screen.SurveyFillOutScreen.route}$SURVEY_ID_ARG") {
             SurveyFillOutScreen(navigateBack = {
                 navController.popBackStack()
             })
         }
-        composable(Screen.ScanSurveyScreen.route){
+        composable("${Screen.FillOutSurveyWithSpeechScreen.route}$SURVEY_ID_ARG") {
+            FillOutWithSpeechScreen(navigateBack = {
+                navController.popBackStack()
+            })
+        }
+        composable(
+           "${Screen.SurveyDetailsScreen.route}$SURVEY_ID_ARG$RESPONSE_ID_ARG",
+            arguments = listOf(
+                navArgument("surveyId"){
+                    defaultValue="surveyId"
+                    type = NavType.StringType
+                }, navArgument("responseNeeded"){
+                    defaultValue=""
+                    type= NavType.StringType
+                }
+            )
+        ){
+            SurveyDetailsScreen(navigateBack = {
+                navController.popBackStack()
+            })
+        }
+        composable("${Screen.ScanSurveyScreen.route}$SURVEY_ID_ARG",
+            arguments = listOf(
+                navArgument("surveyId"){
+                    defaultValue="none"
+                    type= NavType.StringType
+                }
+            )){
             ScanSurveyScreen(navigateBack = {
                 navController.navigate(Screen.MySurveysScreen.route)
             }, openDetailsScreen = { route -> navController.navigate(route) })
+        }
+        composable("${Screen.SentSurveyDetailsScreen.route}$SURVEY_ID_ARG",  arguments = listOf(
+            navArgument("surveyId"){
+                defaultValue="none"
+                type= NavType.StringType
+            }
+        )){
+            SentSurveyDetailsScreen(navigateBack = {
+                navController.popBackStack()
+            }, openDetailsScreen = {
+                surveyId, responseId ->
+                navController.navigate("${Screen.SurveyDetailsScreen.route}?$SURVEY_ID=${surveyId}&${RESPONSE_ID}=${responseId}")
+            })
         }
     }
 }
 
 const val SURVEY_ID = "surveyId"
+const val RESPONSE_ID = "responseId"
 const val SURVEY_ID_ARG = "?$SURVEY_ID={$SURVEY_ID}"
+const val RESPONSE_ID_ARG = "&$RESPONSE_ID={$RESPONSE_ID}"

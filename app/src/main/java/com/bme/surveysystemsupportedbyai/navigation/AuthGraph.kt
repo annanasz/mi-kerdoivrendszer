@@ -10,7 +10,7 @@ import com.bme.surveysystemsupportedbyai.register.RegisterScreen
 import com.bme.surveysystemsupportedbyai.sign_in.SignInScreen
 
 @OptIn(ExperimentalComposeApi::class)
-fun NavGraphBuilder.AuthGraph(
+fun NavGraphBuilder.authGraph(
     navController: NavHostController
 ) {
     navigation(

@@ -1,4 +1,4 @@
-package com.bme.surveysystemsupportedbyai.filledoutsurveys.components
+package com.bme.surveysystemsupportedbyai.sentsurveydetails.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
@@ -19,9 +19,9 @@ import androidx.compose.ui.unit.sp
 import com.bme.surveysystemsupportedbyai.domain.model.SurveyResponse
 
 @Composable
-fun FilledOutItem(
-    response: SurveyResponse,
-    onItemClick: (SurveyResponse)->Unit
+fun RecipientItem(
+    response: SurveyResponse?,
+    openDetailsScreen: (String, String) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -31,26 +31,21 @@ fun FilledOutItem(
                 border = BorderStroke(1.dp, Color.Black),
                 shape = RoundedCornerShape(8.dp)
             )
-        .clickable { onItemClick(response) }
+            .clickable { response?.let { openDetailsScreen(it.surveyId, it.id) } }
     ) {
+        response?.let {
+            Text(
+                text = it.userEmail,
+                modifier = Modifier.padding(8.dp),
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = response.surveyTitle,
-            modifier = Modifier.padding(horizontal = 8.dp),
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "From: ${response.userEmail}",
+            text = "Filled out: ${response?.timestamp?.toDate().toString()}",
             fontWeight = FontWeight.Normal,
-            fontSize = 14.sp,
-            modifier = Modifier.padding(horizontal = 4.dp)
-        )
-        Text(
-            text = "Filled out: ${response.timestamp?.toDate().toString()}",
-            fontWeight = FontWeight.Normal,
-            fontSize = 14.sp,
-            modifier = Modifier.padding(4.dp)
+            fontSize = 14.sp
         )
         Spacer(modifier = Modifier.weight(1f))
     }

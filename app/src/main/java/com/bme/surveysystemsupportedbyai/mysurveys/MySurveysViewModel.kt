@@ -17,9 +17,7 @@ class MySurveysViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val surveysRepository: SurveysRepository
 ) : ViewModel() {
-    val rawsurveys = surveysRepository.userSurveys
-
-    val isEmailVerified get() = authRepository.currentUser?.isEmailVerified ?: false
+    val surveys = surveysRepository.userSurveys
 
     fun signOut() = authRepository.signOut()
     fun onEditClick(survey: Survey, openScreen: (String) -> Unit) {
@@ -33,7 +31,8 @@ class MySurveysViewModel @Inject constructor(
     }
 
     fun onItemClick(survey: Survey, openScreen: (String) -> Unit) {
-        openScreen("${Screen.SurveyDetailsScreen.route}?$SURVEY_ID={${survey.id}}")
+        val responseNeeded = ""
+        openScreen("${Screen.SurveyDetailsScreen.route}?$SURVEY_ID=${survey.id}&$RESPONSE_ID=${responseNeeded}")
     }
 
     fun onSendSurveyClick(survey: Survey?, emails: String) {
@@ -66,3 +65,4 @@ class MySurveysViewModel @Inject constructor(
 }
 
 const val SURVEY_ID = "surveyId"
+const val RESPONSE_ID="responseId"

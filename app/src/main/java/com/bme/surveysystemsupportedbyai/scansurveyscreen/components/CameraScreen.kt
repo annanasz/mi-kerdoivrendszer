@@ -14,7 +14,10 @@ import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
@@ -34,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -42,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.bme.surveysystemsupportedbyai.filloutwithspeech.LoadingAnimation
 import com.bme.surveysystemsupportedbyai.scansurveyscreen.ScanSurveyViewModel
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
@@ -53,8 +59,7 @@ import java.util.concurrent.Executor
 @Composable
 fun CameraScreen(
     navigateBack: () -> Unit,
-    openDetailsScreen: (String) -> Unit,
-    viewModel: ScanSurveyViewModel = hiltViewModel()
+    openDetailsScreen: (String) -> Unit
 ) {
     CameraContent(navigateBack, openDetailsScreen)
 }
@@ -106,30 +111,59 @@ private fun CameraContent(
                 })
         }
         if (isDialogOpen) {
+            var uppercase by remember { mutableStateOf(false) }
+            var loading by remember { mutableStateOf(false) }
             AlertDialog(onDismissRequest = {
-                isDialogOpen = false
-            }, title = { Text("Captured Photo") }, text = {
-                capturedPhoto?.let {
-                    Image(
-                        bitmap = it.asImageBitmap(),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.dp)
-                    )
-                }
+                //isDialogOpen = false
+            }, title = { Text("Captured Photo") },
+                text = {
+                    if(!loading){
+                        Column {
+                            capturedPhoto?.let {
+                                Image(
+                                    bitmap = it.asImageBitmap(),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(300.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = uppercase,
+                                    onCheckedChange = { isChecked ->
+                                        uppercase = isChecked
+                                    }
+                                )
+                                Text("Capital letters")
+                            }
+                        }
+                    }
+                    else{
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            LoadingAnimation()
+                            Text("Processing image...")
+                        }
+                    }
             }, confirmButton = {
                 Button(onClick = {
                     capturedPhoto?.let {
-                        val surveyId = processImage(it) { visionText,_ ->
-                            viewModel.processTextResult(visionText) { textResult ->
+                        processImage(it) { visionText,_ ->
+                            viewModel.processTextResult(visionText, uppercase = uppercase) { textResult ->
                                 if(textResult!=null)
                                     viewModel.openEditScreen(textResult,openDetailsScreen)
                             }
                         }
-                        surveyId?.let { it1 -> viewModel.openEditScreen(it1, openDetailsScreen) }
                     }
-                    isDialogOpen = false
+                    loading = true
                 }) {
                     Text("Accept")
                 }
@@ -177,8 +211,8 @@ private fun rotateBitmapIfNeeded(bitmap: Bitmap, rotationDegrees: Int): Bitmap {
 private fun processImage(image: Bitmap, processText: (Text, (String?) -> Unit) -> Unit):String?{
     val inputImage = InputImage.fromBitmap(image, 0)
     val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-    var surveyId: String? = "hihi"
-    val result = recognizer.process(inputImage)
+    var surveyId: String? = ""
+    recognizer.process(inputImage)
         .addOnSuccessListener { visionText ->
             processText(visionText) { textResult ->
                 surveyId = textResult

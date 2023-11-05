@@ -1,5 +1,6 @@
 package com.bme.surveysystemsupportedbyai.surveyfillout
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,9 +17,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.bme.surveysystemsupportedbyai.filloutwithspeech.LoadingAnimation
 import com.bme.surveysystemsupportedbyai.surveyfillout.components.ClickableQuestionItem
 import com.bme.surveysystemsupportedbyai.surveyfillout.components.SentSuccessfullyAlertDialog
 
@@ -30,12 +33,12 @@ fun SurveyFillOutScreen(
 ) {
     val survey by viewModel.survey
     val isSendButtonEnabled = viewModel.allRequiredQuestionsAnswered()
-    var isSentAlertDialogVisible = viewModel.done
+    val isSentAlertDialogVisible = viewModel.done
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "Fill out ${survey.title}")
+                    Text(text = if (survey.id.isNotEmpty())"Fill out ${survey.title}" else "")
                 },
                 navigationIcon = {
                     IconButton(onClick = { navigateBack() }) {
@@ -45,6 +48,15 @@ fun SurveyFillOutScreen(
             )
         },
         content = { padding ->
+
+            if (survey.id.isEmpty()) Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                LoadingAnimation()
+            } else {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -91,6 +103,7 @@ fun SurveyFillOutScreen(
                 }
 
             }
+        }
         }
     )
     if(isSentAlertDialogVisible.value){

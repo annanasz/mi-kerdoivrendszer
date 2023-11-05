@@ -3,7 +3,6 @@ package com.bme.surveysystemsupportedbyai.core
 object Constants {
     const val SIGN_IN_SCREEN = "Sign in"
     const val REGISTER_SCREEN = "Register"
-    const val HOME_SCREEN = "Home"
     const val MY_SURVEYS_SCREEN = "MySurveys"
     const val SENT_SURVEYS_SCREEN = "SentSurveys"
     const val FILLED_OUT_SURVEYS_SCREEN = "FilledOutSurveys"
@@ -12,6 +11,8 @@ object Constants {
     const val SURVEY_EDIT_SCREEN = "SurveyEdit"
     const val SURVEY_FILL_OUT_SCREEN = "SurveyFillOut"
     const val SCAN_SURVEY_SCREEN = "ScanSurvey"
+    const val SENT_SURVEY_DETAILS_SCREEN = "SentSurveyDetailsScreen"
+    const val FILL_OUT_SURVEY_WITH_SPEECH = "FillOutWithSpeech"
     //Menu Items
     const val SIGN_OUT_ITEM = "Sign out"
 
@@ -31,13 +32,7 @@ object Constants {
 
     const val VERIFY_EMAIL_MESSAGE = "We've sent you an email with a link to verify the email."
 
-    //Welcome messages
-    const val WELCOME_MESSAGE = "Welcome to our app."
-    const val WELCOME_FILLED_OUT = "Welcome to filled out surveys."
-    const val WELCOME_MY_SURVEYS = "Welcome to my surveys."
-    const val WELCOME_SENT_SURVEYS = "Welcome to sent surveys."
-    const val WELCOME_INBOX = "Welcome to inbox surveys."
 
     const val SCAN_MESSAGE="Scan your survey"
-
+    const val SENT_SURVEY = "Sent survey"
 }

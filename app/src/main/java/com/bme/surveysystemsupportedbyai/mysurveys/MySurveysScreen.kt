@@ -36,7 +36,7 @@ fun MySurveysSurveyScreen(
     paddingValues: PaddingValues,
     viewModel: MySurveysViewModel = hiltViewModel()
 ) {
-    val mySurveys = viewModel.rawsurveys.collectAsStateWithLifecycle(emptyList())
+    val mySurveys = viewModel.surveys.collectAsStateWithLifecycle(emptyList())
     val emailList by remember { mutableStateOf("") }
     var deleteSurvey: Survey? by remember { mutableStateOf(null) }
     var sendSurvey: Survey? by remember { mutableStateOf(null) }
@@ -57,7 +57,7 @@ fun MySurveysSurveyScreen(
                 },
                 modifier = Modifier
                     .padding(16.dp, 16.dp, 16.dp, paddingValues.calculateBottomPadding() + 16.dp)
-                    .size(56.dp) // Adjust the size as needed
+                    .size(56.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.CameraAlt,

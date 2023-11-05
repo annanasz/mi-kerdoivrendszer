@@ -1,4 +1,4 @@
-package com.bme.surveysystemsupportedbyai.filledoutsurveys.components
+package com.bme.surveysystemsupportedbyai.sentsurveydetails.components
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -6,15 +6,15 @@ import androidx.compose.runtime.Composable
 import com.bme.surveysystemsupportedbyai.domain.model.SurveyResponse
 
 @Composable
-fun FilledOutList(
-    responses: List<SurveyResponse>,
-    onItemClick: (SurveyResponse)->Unit
-){
+fun RecipientList(
+    responses: List<SurveyResponse?>,
+    openDetailsScreen: (String, String) -> Unit
+) {
     LazyColumn {
         items(responses) { response ->
-            FilledOutItem(
+            RecipientItem(
                 response = response,
-                onItemClick= onItemClick
+                openDetailsScreen = openDetailsScreen
             )
         }
     }

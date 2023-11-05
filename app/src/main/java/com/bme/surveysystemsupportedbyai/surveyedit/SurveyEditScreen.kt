@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.bme.surveysystemsupportedbyai.filloutwithspeech.LoadingAnimation
 import com.bme.surveysystemsupportedbyai.surveyedit.components.AddQuestionDialog
 import com.bme.surveysystemsupportedbyai.surveyedit.components.SurveyEditTopBar
 import com.bme.surveysystemsupportedbyai.surveyedit.components.SurveyQuestionCard
@@ -34,6 +35,8 @@ import com.bme.surveysystemsupportedbyai.surveyedit.components.SurveyQuestionCar
 fun SurveyEditScreen(
     viewModel: SurveyEditViewModel = hiltViewModel(),
     navigateBack: () -> Unit,
+    navigateToMySurveys: () -> Unit,
+    openScanner: (String) -> Unit,
     deleteSurvey: Boolean = false
 ) {
     val survey by viewModel.survey
@@ -43,13 +46,18 @@ fun SurveyEditScreen(
     Scaffold(topBar = {
         SurveyEditTopBar(survey = survey,
             navigateBack = { viewModel.onBackClick(navigateBack,deleteSurvey) },
-            addQuestion = { isDialogOpen = true })
+            addQuestion = { isDialogOpen = true },
+            scanQuestion = {viewModel.scanQuestion(openScanner)},
+            isAvailable = survey.id.isNotEmpty())
     }, content = { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(padding),
+            contentAlignment = Alignment.Center
         ) {
+            if (survey.id.isEmpty())
+                LoadingAnimation()
             LazyColumn(
                 modifier = Modifier
                     .padding(16.dp)
@@ -65,7 +73,7 @@ fun SurveyEditScreen(
 
             FloatingActionButton(
                 onClick = {
-                    viewModel.onDoneClick(navigateBack)
+                    viewModel.onDoneClick(navigateToMySurveys)
                 },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)

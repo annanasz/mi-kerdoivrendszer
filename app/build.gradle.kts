@@ -23,6 +23,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        buildConfigField ("String", "OPENAI_API_KEY", "\"${System.getenv("OPENAI_API_KEY")}\"")
     }
 
     buildTypes {
@@ -43,6 +44,7 @@ android {
     }
     buildFeatures {
         compose = true
+        android.buildFeatures.buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.3"
@@ -97,4 +99,11 @@ dependencies {
     implementation ("com.google.accompanist:accompanist-permissions:0.31.6-rc")
     //Text recognition
     implementation ("com.google.mlkit:text-recognition:16.0.0")
+    //OpenAI
+    implementation (platform("com.aallam.openai:openai-client-bom:3.5.0"))
+    implementation ("com.aallam.openai:openai-client")
+    runtimeOnly ("io.ktor:ktor-client-okhttp")
+    //gson
+    implementation("com.google.code.gson:gson:2.9.0")
+
 }

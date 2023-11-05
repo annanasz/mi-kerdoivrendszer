@@ -7,12 +7,14 @@ import com.bme.surveysystemsupportedbyai.domain.model.SentSurvey
 
 @Composable
 fun SentSurveyList(
-    surveys: List<SentSurvey>
+    surveys: List<SentSurvey>,
+    openDetailsScreen: (String) -> Unit
 ) {
     LazyColumn {
         items(surveys) { survey ->
             SentSurveyItem(
-                survey = survey
+                survey = survey,
+                openDetailsScreen = openDetailsScreen
             )
         }
     }

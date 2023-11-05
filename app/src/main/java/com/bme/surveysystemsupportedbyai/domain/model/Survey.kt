@@ -9,5 +9,5 @@ data class Survey(
     val title: String="",
     val questions: List<Question> = emptyList(),
     val timestamp: Timestamp?=null,
-    val responseIds: List<String>?= listOf<String>()
+    val responseIds: List<String>?= listOf()
 )

@@ -17,10 +17,6 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -36,7 +32,7 @@ data class BottomNavigationItem(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BottomNavigation(navController: NavController) {
+fun BottomNavigation(navController: NavController, selectedItemIndex:Int, changeSelecetedItemIndex: (Int)->Unit) {
     val items = listOf(
         BottomNavigationItem(
             title = Constants.MY_SURVEYS_SCREEN,
@@ -64,16 +60,13 @@ fun BottomNavigation(navController: NavController) {
             unselectedIcon = Icons.Outlined.Email,
         ),
     )
-    var selectedItemIndex by rememberSaveable {
-        mutableStateOf(0)
-    }
 
     NavigationBar {
         items.forEachIndexed { index, item ->
             NavigationBarItem(
                 selected = selectedItemIndex == index,
                 onClick = {
-                    selectedItemIndex = index
+                    changeSelecetedItemIndex(index)
                     navController.navigate(item.title) {
                         popUpTo(navController.graph.findStartDestination().id) {
                             saveState = true

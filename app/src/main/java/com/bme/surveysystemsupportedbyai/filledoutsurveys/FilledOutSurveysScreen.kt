@@ -16,7 +16,8 @@ import com.bme.surveysystemsupportedbyai.filledoutsurveys.components.FilledOutLi
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilledOutSurveyScreen(
-    viewModel: FilledOutSurveysViewModel = hiltViewModel()
+    viewModel: FilledOutSurveysViewModel = hiltViewModel(),
+    openDetailsScreen: (String) -> Unit
 ) {
     val filledOutSurveys = viewModel.filledOutSurveys.collectAsStateWithLifecycle(initialValue = emptyList())
     Scaffold(
@@ -35,7 +36,7 @@ fun FilledOutSurveyScreen(
                 .padding(innerPadding)
                 .fillMaxSize()
         ){
-            FilledOutList(responses = filledOutSurveys.value)
+            FilledOutList(responses = filledOutSurveys.value, onItemClick = {response-> viewModel.onItemClick(response, openDetailsScreen) })
         }
     }
 

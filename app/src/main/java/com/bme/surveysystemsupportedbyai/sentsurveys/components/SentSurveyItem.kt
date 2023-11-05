@@ -2,6 +2,7 @@ package com.bme.surveysystemsupportedbyai.sentsurveys.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,7 +20,8 @@ import com.bme.surveysystemsupportedbyai.domain.model.SentSurvey
 
 @Composable
 fun SentSurveyItem(
-    survey: SentSurvey
+    survey: SentSurvey,
+    openDetailsScreen: (String) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -29,19 +31,20 @@ fun SentSurveyItem(
                 border = BorderStroke(1.dp, Color.Black), // Adjust the color and width as needed
                 shape = RoundedCornerShape(8.dp) // Adjust the shape as needed
             )
-        //.clickable { onItemClick(survey) }
+            .clickable { openDetailsScreen(survey.surveyId) }
     ) {
         Text(
             text = survey.surveyTitle, //?: "nincs",
             modifier = Modifier.padding(8.dp),
             fontWeight = FontWeight.Bold,
-            fontSize = 18.sp
+            fontSize = 20.sp
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Sent: ${survey.timestamp?.toDate().toString()}",
             fontWeight = FontWeight.Normal,
-            fontSize = 14.sp
+            fontSize = 14.sp,
+            modifier = Modifier.padding(horizontal = 8.dp)
         )
         Spacer(modifier = Modifier.weight(1f))
     }

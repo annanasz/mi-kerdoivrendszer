@@ -16,7 +16,8 @@ import com.bme.surveysystemsupportedbyai.sentsurveys.components.SentSurveyList
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SentSurveysSurveyScreen(
-    viewModel: SentSurveysViewModel = hiltViewModel()
+    viewModel: SentSurveysViewModel = hiltViewModel(),
+    openDetailsScreen: (String) -> Unit
 ) {
     val sentSurveys = viewModel.sentSurveys.collectAsStateWithLifecycle(initialValue = emptyList())
     Scaffold(
@@ -35,7 +36,7 @@ fun SentSurveysSurveyScreen(
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
-            SentSurveyList(surveys = sentSurveys.value)
+            SentSurveyList(surveys = sentSurveys.value, openDetailsScreen)
         }
     }
 

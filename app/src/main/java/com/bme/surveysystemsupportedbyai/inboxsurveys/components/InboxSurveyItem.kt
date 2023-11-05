@@ -6,11 +6,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -27,30 +27,29 @@ import com.bme.surveysystemsupportedbyai.domain.model.ReceivedSurvey
 fun InboxSurveyItem(
     survey: ReceivedSurvey,
     onFillOutClick: (ReceivedSurvey) -> Unit,
+    onFillOutWithSpeechClick: (ReceivedSurvey) -> Unit,
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 2.dp, vertical = 2.dp)
             .border(
-                border = BorderStroke(1.dp, Color.Black), // Adjust the color and width as needed
-                shape = RoundedCornerShape(8.dp) // Adjust the shape as needed
+                border = BorderStroke(1.dp, Color.Black),
+                shape = RoundedCornerShape(8.dp)
             )
-        //.clickable { onItemClick(survey) }
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(0.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = survey.surveyTitle ?: "Untitled", // Add a default title if it's null
+                text = survey.surveyTitle,
                 modifier = Modifier
-                    .padding(8.dp)
-                    .weight(1f), // Use weight to make the title expand to the left
+                    .padding(horizontal = 8.dp)
+                    .weight(1f),
                 fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
+                fontSize = 20.sp
             )
-            // Edit icon button
             IconButton(
                 onClick = {
                     onFillOutClick(survey)
@@ -58,22 +57,33 @@ fun InboxSurveyItem(
             ) {
                 Icon(
                     imageVector = Icons.Default.EditNote,
-                    contentDescription = "Edit",
-                    tint = Color.Black // Customize the icon color as needed
+                    contentDescription = "FillOut",
+                    tint = Color.Black
+                )
+            }
+            IconButton(
+                onClick = {
+                    onFillOutWithSpeechClick(survey)
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Mic,
+                    contentDescription = "FillOutWithSpeech",
+                    tint = Color.Black
                 )
             }
         }
         Text(
             text = "From: ${survey.senderEmail}",
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier.padding(horizontal = 8.dp),
             fontWeight = FontWeight.Bold,
-            fontSize = 18.sp
+            fontSize = 16.sp
         )
-        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = survey.timestamp?.toDate().toString(),
             fontWeight = FontWeight.Normal,
-            fontSize = 14.sp
+            fontSize = 14.sp,
+            modifier = Modifier.padding(horizontal = 8.dp)
         )
         Spacer(modifier = Modifier.weight(1f))
     }

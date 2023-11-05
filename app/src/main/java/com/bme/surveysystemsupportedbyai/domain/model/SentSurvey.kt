@@ -4,13 +4,6 @@ package com.bme.surveysystemsupportedbyai.domain.model
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
 
-//data class SentSurvey(
-//    val surveyId: String,
-//    val senderId: String,
-//    val recipientIds: List<String>,
-//    val timestamp: Timestamp
-//)
-
 data class SentSurvey(
     @DocumentId var id:String="",
     val surveyId: String ="",

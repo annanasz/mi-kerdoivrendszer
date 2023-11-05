@@ -22,17 +22,21 @@ fun HomeScreen(
     val shouldShowBottomNavigation = navBackStackEntry?.destination?.route?.contains(Screen.SurveyDetailsScreen.route)==false &&
             navBackStackEntry?.destination?.route?.contains(Screen.SurveyEditScreen.route)==false &&
             navBackStackEntry?.destination?.route?.contains(Screen.SurveyFillOutScreen.route)==false &&
-            navBackStackEntry?.destination?.route?.contains(Screen.ScanSurveyScreen.route) == false
+            navBackStackEntry?.destination?.route?.contains(Screen.ScanSurveyScreen.route) == false &&
+            navBackStackEntry?.destination?.route?.contains(Screen.FillOutSurveyWithSpeechScreen.route) == false
+
     if(shouldShowBottomNavigation){
         Scaffold(
-            bottomBar = {BottomNavigation(navController = navController)}
+            bottomBar = {BottomNavigation(navController = navController, viewModel.selectedItemIndex.intValue
+            ) { destination -> viewModel.navigate(destination) }
+            }
         ){
                 paddingValues ->
             MainGraph(navController = navController, paddingValues = paddingValues)
         }
     }
     else{
-        Scaffold(){
+        Scaffold {
                 paddingValues ->
             MainGraph(navController = navController, paddingValues = paddingValues)
         }

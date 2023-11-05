@@ -1,5 +1,6 @@
 package com.bme.surveysystemsupportedbyai.data.repository
 
+import com.bme.surveysystemsupportedbyai.domain.model.Answer
 import com.bme.surveysystemsupportedbyai.domain.model.Question
 import com.bme.surveysystemsupportedbyai.domain.model.ReceivedSurvey
 import com.bme.surveysystemsupportedbyai.domain.model.SentSurvey
@@ -16,6 +17,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Query
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 
 
 @Singleton
@@ -27,7 +32,25 @@ class SurveysRepositoryImpl @Inject constructor(
         get() = firestore.collection(SURVEYS_COLLECTION)
             .whereEqualTo(CREATOR_ID_FIELD, auth.currentUser?.uid)
             .orderBy("timestamp", Query.Direction.DESCENDING)
-            .dataObjects<Survey>()
+            .dataObjects()
+    override val sentSurveys: Flow<List<SentSurvey>>
+        get() = firestore.collection(SENT_SURVEYS_COLLECTION)
+            .whereEqualTo(SENDER_ID_FIELD,auth.currentUser?.uid)
+            .orderBy("timestamp",Query.Direction.DESCENDING)
+            .dataObjects()
+
+    override val receivedSurveys: Flow<List<ReceivedSurvey>>
+        get() = firestore.collection(RECEIVED_SURVEYS_COLLECTION)
+            .whereEqualTo(RECIPIENT_EMAIL_FIELD, auth.currentUser?.email)
+            .whereEqualTo(FILLED_FIELD, false)
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .dataObjects()
+    override val filledOutSurveys: Flow<List<SurveyResponse>>
+        get() = firestore.collection(RESPONSES_COLLECTION)
+            .whereEqualTo(USER_ID_FIELD, auth.currentUser?.uid)
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .dataObjects()
+
 
     override suspend fun getSurvey(surveyId: String): Survey? {
         val surveyDoc = firestore.collection(SURVEYS_COLLECTION).document(surveyId).get().await()
@@ -44,6 +67,16 @@ class SurveysRepositoryImpl @Inject constructor(
             return survey.copy(questions = questions as List<Question>)
         }
         return null
+    }
+
+
+    override suspend fun saveSurvey(survey: Survey):String {
+        val surveyWithUserId = survey.copy(creatorId = auth.currentUser!!.uid, timestamp = Timestamp.now())
+        val surveyRef = firestore.collection(SURVEYS_COLLECTION).document()
+        val surveyId = surveyRef.id
+        val copiedSurveyData = copySurveyWithQuestions(surveyWithUserId, surveyId, true)
+        surveyRef.set(copiedSurveyData).await()
+        return surveyId
     }
 
     override suspend fun updateSurvey(survey: Survey) {
@@ -68,7 +101,7 @@ class SurveysRepositoryImpl @Inject constructor(
         val existingQuestionsSnapshot = questionsCollectionRef.get().await()
         for (document in existingQuestionsSnapshot.documents) {
             val questionId = document.id
-            if (survey.questions?.none { it.id == questionId } ?: false) {
+            if (survey.questions.none { it.id == questionId }) {
                 questionsCollectionRef.document(questionId).delete().await()
             }
         }
@@ -96,11 +129,6 @@ class SurveysRepositoryImpl @Inject constructor(
         editSurveyOnSend(sentSurvey.surveyId)
     }
 
-    override val sentSurveys: Flow<List<SentSurvey>>
-        get() = firestore.collection(SENT_SURVEYS_COLLECTION)
-            .whereEqualTo(SENDER_ID_FIELD,auth.currentUser?.uid)
-            .orderBy("timestamp",Query.Direction.DESCENDING)
-            .dataObjects<SentSurvey>()
 
     override suspend fun saveReceivedSurvey(receivedSurveys: List<ReceivedSurvey>) {
         for (receivedSurvey in receivedSurveys) {
@@ -120,19 +148,41 @@ class SurveysRepositoryImpl @Inject constructor(
         return true
     }
 
-    override val receivedSurveys: Flow<List<ReceivedSurvey>>
-        get() = firestore.collection(RECEIVED_SURVEYS_COLLECTION)
-            .whereEqualTo(RECIPIENT_EMAIL_FIELD, auth.currentUser?.email)
-            .whereEqualTo(FILLED_FIELD, false)
-            .orderBy("timestamp", Query.Direction.DESCENDING)
-            .dataObjects()
-    override val filledOutSurveys: Flow<List<SurveyResponse>>
-        get() = firestore.collection(RESPONSES_COLLECTION)
-            .whereEqualTo(USER_ID_FIELD, auth.currentUser?.uid)
-            .orderBy("timestamp", Query.Direction.DESCENDING)
-            .dataObjects()
 
-    suspend fun editSurveyOnSend(id: String){
+    override suspend fun getResponse(responseId: String): SurveyResponse? {
+        val responseDoc = firestore.collection(RESPONSES_COLLECTION).document(responseId).get().await()
+        val response = responseDoc.toObject<SurveyResponse>()
+        if(response!=null){
+            val answersDoc = responseDoc.reference.collection(ANSWER_COLLECTION).get().await()
+            val answers = answersDoc.documents.map { it.toObject<Answer>() }
+            return response.copy(answers=answers)
+        }
+        return null
+    }
+
+    override suspend fun getResponsesWithAnswers(surveyId: String): List<SurveyResponse?> {
+        val query = firestore.collection(RESPONSES_COLLECTION)
+            .whereEqualTo("surveyId", surveyId)
+
+        return try {
+            val querySnapshot = query.get().await()
+            val responses = querySnapshot.documents.map { responseDoc ->
+                val response = responseDoc.toObject<SurveyResponse>()
+                if (response != null) {
+                    val answersDoc = responseDoc.reference.collection(ANSWER_COLLECTION)
+                    val answers = answersDoc.get().await().documents.map { it.toObject<Answer>() }
+                    response.copy(answers = answers)
+                } else {
+                    null
+                }
+            }
+            responses
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    private suspend fun editSurveyOnSend(id: String){
         val originalSurveyDocRef = firestore.collection(SURVEYS_COLLECTION).document(id)
         val originalSurveyDoc = originalSurveyDocRef.get().await()
         val originalSurveyData = originalSurveyDoc.toObject<Survey>()
@@ -144,14 +194,6 @@ class SurveysRepositoryImpl @Inject constructor(
             newSurveyRef.set(copiedSurveyData).await()
             originalSurveyDocRef.update("creatorId", "none").await()
         }
-    }
-    override suspend fun saveSurvey(survey: Survey):String {
-        val surveyWithUserId = survey.copy(creatorId = auth.currentUser!!.uid, timestamp = Timestamp.now())
-        val surveyRef = firestore.collection(SURVEYS_COLLECTION).document()
-        val surveyId = surveyRef.id
-        val copiedSurveyData = copySurveyWithQuestions(surveyWithUserId, surveyId, true)
-        surveyRef.set(copiedSurveyData).await()
-        return surveyId
     }
     private suspend fun copySurveyWithQuestions(originalSurvey: Survey, newSurveyId: String, timestampNeeded:Boolean=false): Survey {
         val copiedSurveyData = originalSurvey.copy(id = newSurveyId)
@@ -175,13 +217,43 @@ class SurveysRepositoryImpl @Inject constructor(
             val newAnswerRef = firestore.collection(RESPONSES_COLLECTION).document(responseId).collection(
                 ANSWER_COLLECTION).document()
             val newAnswerId = newAnswerRef.id
-            val newAnswerData = answer.copy(id = newAnswerId)
-            newAnswerRef.set(newAnswerData).await()
+            val newAnswerData = answer?.copy(id = newAnswerId)
+            if (newAnswerData != null) {
+                newAnswerRef.set(newAnswerData).await()
+            }
             newAnswerData
         }
         return originalSurveyResponse.copy(id = responseId, answers = newAnswers)
     }
 
+    override suspend fun getResponsesWithAnswersTest(surveyId: String): Flow<List<SurveyResponse?>> = callbackFlow {
+        val query = firestore.collection(RESPONSES_COLLECTION)
+            .whereEqualTo("surveyId", surveyId)
+
+        val listener = query.addSnapshotListener { querySnapshot, error ->
+            if (error != null) {
+                close(error)
+            } else {
+                GlobalScope.launch {
+                    val responses = querySnapshot?.documents?.map { responseDoc ->
+                        val response = responseDoc.toObject<SurveyResponse>()
+                        if (response != null) {
+                            val answersDoc = responseDoc.reference.collection(ANSWER_COLLECTION)
+                            val answers = answersDoc.get().await().documents.map { it.toObject<Answer>() }
+                            response.copy(answers = answers)
+                        } else {
+                            null
+                        }
+                    }
+                    if (responses != null) {
+                        trySend(responses).isSuccess // Emit the responses
+                    }
+                }
+            }
+        }
+
+        awaitClose { listener.remove() } // Remove the listener when the flow is cancelled
+    }
 
     companion object {
         private const val CREATOR_ID_FIELD = "creatorId"
