@@ -5,12 +5,13 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 
 import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
 
 class TextToSpeechManager(context: Context, private val onInitCallback: () -> Unit) :
     TextToSpeech.OnInitListener {
     private var textToSpeech: TextToSpeech = TextToSpeech(context, this)
 
-    private var utteranceQueue: Queue<Pair<String, String>> = LinkedList()
+    private var utteranceQueue: Queue<Pair<String, String>> = ConcurrentLinkedQueue()
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
@@ -32,13 +33,15 @@ class TextToSpeechManager(context: Context, private val onInitCallback: () -> Un
     }
 
     fun speak(text: String, taskId: String) {
-        utteranceQueue.offer(text to taskId)
-        if (utteranceQueue.size >= 1 && !textToSpeech.isSpeaking) {
-            val nextUtterance = utteranceQueue.poll()
-            if (nextUtterance != null) {
-                textToSpeech.speak(
-                    nextUtterance.first, TextToSpeech.QUEUE_ADD, null, nextUtterance.second
-                )
+        synchronized(this) {
+            utteranceQueue.offer(text to taskId)
+            if (utteranceQueue.size == 1 && !textToSpeech.isSpeaking) {
+                val nextUtterance = utteranceQueue.poll()
+                if (nextUtterance != null) {
+                    textToSpeech.speak(
+                        nextUtterance.first, TextToSpeech.QUEUE_ADD, null, nextUtterance.second
+                    )
+                }
             }
         }
     }
@@ -48,12 +51,14 @@ class TextToSpeechManager(context: Context, private val onInitCallback: () -> Un
     }
 
     fun nextItem() {
-        if (!utteranceQueue.isEmpty()) {
-            val nextUtterance = utteranceQueue.poll()
-            if (nextUtterance != null) {
-                textToSpeech.speak(
-                    nextUtterance.first, TextToSpeech.QUEUE_ADD, null, nextUtterance.second
-                )
+        synchronized(this) {
+            if (!utteranceQueue.isEmpty()) {
+                val nextUtterance = utteranceQueue.poll()
+                if (nextUtterance != null) {
+                    textToSpeech.speak(
+                        nextUtterance.first, TextToSpeech.QUEUE_ADD, null, nextUtterance.second
+                    )
+                }
             }
         }
     }
