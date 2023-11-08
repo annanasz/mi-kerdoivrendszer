@@ -10,22 +10,21 @@ import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bme.surveysystemsupportedbyai.domain.model.SurveyResponse
+import com.bme.surveysystemsupportedbyai.sentsurveydetails.SentSurveyDetailsScreenUiState
 import com.bme.surveysystemsupportedbyai.sentsurveydetails.SentSurveyDetailsViewModel
+import com.bme.surveysystemsupportedbyai.surveyDetails.DetailsScreenUiState
 
 @Composable
 fun ResponsesScreen(
     openDetailsScreen: (String, String) -> Unit,
-    viewModel: SentSurveyDetailsViewModel
+    uiState:SentSurveyDetailsScreenUiState
 ) {
-    val sentSurveyResponses: List<SurveyResponse?> by viewModel.responsesTest.collectAsStateWithLifecycle(
-        initialValue = emptyList()
-    )
     Column(
         modifier = Modifier
             .fillMaxSize()
     ) {
 
-        if (sentSurveyResponses.isEmpty()) {
+        if (uiState.responses.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Center
@@ -33,7 +32,7 @@ fun ResponsesScreen(
                 Text(text = "No responses yet")
             }
         } else {
-            RecipientList(responses = sentSurveyResponses, openDetailsScreen = openDetailsScreen)
+            RecipientList(responses = uiState.responses, openDetailsScreen = openDetailsScreen)
         }
     }
 }

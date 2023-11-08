@@ -13,17 +13,14 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bme.surveysystemsupportedbyai.components.TopBar
 import com.bme.surveysystemsupportedbyai.core.Constants
-import com.bme.surveysystemsupportedbyai.domain.model.Survey
 import com.bme.surveysystemsupportedbyai.mysurveys.components.DeleteAlertDialog
 import com.bme.surveysystemsupportedbyai.mysurveys.components.SendSurveyDialog
 import com.bme.surveysystemsupportedbyai.mysurveys.components.SurveyList
@@ -36,11 +33,15 @@ fun MySurveysSurveyScreen(
     paddingValues: PaddingValues,
     viewModel: MySurveysViewModel = hiltViewModel()
 ) {
-    val mySurveys = viewModel.surveys.collectAsStateWithLifecycle(emptyList())
-    val emailList by remember { mutableStateOf("") }
-    var deleteSurvey: Survey? by remember { mutableStateOf(null) }
-    var sendSurvey: Survey? by remember { mutableStateOf(null) }
-    var showSendSurveyDialog by remember { mutableStateOf(false) }
+    val uiState by viewModel.uiState.collectAsState()
+//    val emailList by remember { mutableStateOf("") }
+//    var deleteSurvey: Survey? by remember { mutableStateOf(null) }
+//    var sendSurvey: Survey? by remember { mutableStateOf(null) }
+//    var showSendSurveyDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(viewModel) {
+        viewModel.fetchData()
+    }
     Scaffold(
         topBar = {
             TopBar(
@@ -74,7 +75,7 @@ fun MySurveysSurveyScreen(
                 .fillMaxSize()
         ) {
             SurveyList(
-                surveys = mySurveys.value,
+                surveys = uiState.surveys,
                 onEditClick = { survey ->
                     viewModel.onEditClick(
                         survey,
@@ -82,11 +83,10 @@ fun MySurveysSurveyScreen(
                     )
                 },
                 onDeleteClick = { survey ->
-                    deleteSurvey = survey
+                    viewModel.onDeleteButtonClick(survey)
                 },
                 onSendClick = { survey ->
-                    showSendSurveyDialog = true
-                    sendSurvey = survey
+                    viewModel.onSendButtonClicked(survey)
                 },
                 onItemClick = { survey ->
                     viewModel.onItemClick(
@@ -98,28 +98,28 @@ fun MySurveysSurveyScreen(
 
         }
     }
-    if (deleteSurvey != null) {
+    if (viewModel.showSendDeleteDialog) {
         DeleteAlertDialog(
             onDeleteClick = { survey ->
-                viewModel.onDeleteClick(survey)
+                viewModel.deleteSurvey(survey)
             },
-            surveyToDelete = deleteSurvey,
+            surveyToDelete = viewModel.deleteSurvey,
             onDismiss = {
-                deleteSurvey = null
+                viewModel.onDismissDeleteDialog()
             }
         )
     }
-    if (showSendSurveyDialog) {
+    if (viewModel.showSendSurveyDialog) {
         SendSurveyDialog(
-            onSendClick = { survey, emails ->
-                viewModel.onSendSurveyClick(survey, emails)
-                showSendSurveyDialog = false
+            onSendClick = { survey->
+                viewModel.sendSurvey(survey)
             },
             onCancelClick = {
-                showSendSurveyDialog = false
+                viewModel.onDismissSendDialog()
             },
-            emailList = emailList,
-            selectedSurvey = sendSurvey
+            onEmailListChanged = {viewModel.updateEmailList(it)},
+            emailList = viewModel.emailList,
+            selectedSurvey = viewModel.sendSurvey
         )
     }
 

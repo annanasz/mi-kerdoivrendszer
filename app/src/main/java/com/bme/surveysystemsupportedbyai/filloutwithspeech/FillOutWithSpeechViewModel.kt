@@ -3,10 +3,7 @@ package com.bme.surveysystemsupportedbyai.filloutwithspeech
 import android.content.Context
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -34,6 +31,10 @@ import com.aallam.openai.client.OpenAI
 import com.bme.surveysystemsupportedbyai.domain.model.Answer
 import com.bme.surveysystemsupportedbyai.domain.model.SurveyResponse
 import com.google.gson.Gson
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -45,12 +46,12 @@ class FillOutWithSpeechViewModel @Inject constructor(
     private val surveysRepository: SurveysRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
-    val survey = mutableStateOf(Survey())
+    //val survey = mutableStateOf(Survey())
     private var textToSpeechManager: TextToSpeechManager? = null
-    val currentQuestionIndex = mutableIntStateOf(-1)
+    //val currentQuestionIndex = mutableIntStateOf(-1)
     private var speechToText: SpeechToText? = null
-    var textState by mutableStateOf("Press the button to start")
-    var buttonState by mutableStateOf("START")
+    //var textState by mutableStateOf("Press the button to start")
+    //var buttonState by mutableStateOf("START")
     private var abc2 =
         listOf("A. ", "B. ", "C. ", "D. ", "E. ", "F. ", "G. ", "H. ", "I. ", "J. ", "K. ", "L. ")
     private var abc =
@@ -58,11 +59,14 @@ class FillOutWithSpeechViewModel @Inject constructor(
     private val apiKey = BuildConfig.OPENAI_API_KEY
     private var openai: OpenAI? = null
     private val answers = mutableListOf<Answer>()
-    var fillOutState = mutableStateOf(FillOutState.Initial)
+    //var fillOutState = mutableStateOf(FillOutState.Initial)
     private var prevFillOutState = mutableStateOf(FillOutState.Stop)
     private var currentAnswer: Answer? = null
 
     enum class FillOutState { Start, End, Confirmation, Question, Stop, Thinking, UserSpeaking, Sent, Initial }
+
+    private val _uiState = MutableStateFlow(FillOutWithSpeechUiState())
+    val uiState: StateFlow<FillOutWithSpeechUiState> = _uiState.asStateFlow()
 
     private var utteranceProgressListener: UtteranceProgressListener =
         object : UtteranceProgressListener() {
@@ -74,10 +78,11 @@ class FillOutWithSpeechViewModel @Inject constructor(
                         "_end"
                     )
                 ) {
-                    if(fillOutState.value!= FillOutState.Stop) {
-                        textState = ""
-                        prevFillOutState.value = fillOutState.value
-                        fillOutState.value = FillOutState.UserSpeaking
+                    if(_uiState.value.fillOutState!= FillOutState.Stop) {
+                        _uiState.update { it.copy(textState = "") }
+                        //textState = ""
+                        prevFillOutState.value = _uiState.value.fillOutState
+                        _uiState.update { it.copy(fillOutState = FillOutState.UserSpeaking) }
                         send(AppAction.StartRecord)
                     }
                 }
@@ -91,10 +96,19 @@ class FillOutWithSpeechViewModel @Inject constructor(
 
 
     init {
+//        val surveyId = savedStateHandle.get<String>(SURVEY_ID)
+//        if (surveyId != null) {
+//            viewModelScope.launch {
+//                survey.value = surveysRepository.getSurvey(surveyId.idFromParameter()) ?: Survey()
+//            }
+//        }
         val surveyId = savedStateHandle.get<String>(SURVEY_ID)
         if (surveyId != null) {
             viewModelScope.launch {
-                survey.value = surveysRepository.getSurvey(surveyId.idFromParameter()) ?: Survey()
+                surveysRepository.getSurvey(surveyId.idFromParameter())?.let { survey ->
+                    //_uiState.value = _uiState.value.copy(survey = survey)
+                    _uiState.update { it.copy(survey = survey) }
+                }
             }
         }
         textToSpeechManager =
@@ -118,21 +132,22 @@ class FillOutWithSpeechViewModel @Inject constructor(
         )
     }
 
-    fun getCurrentQuestion(): Question {
-        val index = currentQuestionIndex.intValue
-        return if (index >= 0) survey.value.questions.getOrNull(index) ?: Question()
+   private fun getCurrentQuestion(): Question {
+        val index = _uiState.value.currentQuestionIndex
+        return if (index >= 0) _uiState.value.survey.questions.getOrNull(index) ?: Question()
         else Question()
     }
 
     private fun moveToNextQuestion() {
-        if (currentQuestionIndex.intValue <= survey.value.questions.size - 1) {
-            currentQuestionIndex.intValue++
+        val index = _uiState.value.currentQuestionIndex
+        if (index <= _uiState.value.survey.questions.size - 1) {
+            _uiState.value = _uiState.value.copy(currentQuestionIndex = index+1)
         }
     }
 
     private fun recordingEnded(text: String) {
-        fillOutState.value = prevFillOutState.value
-        when (fillOutState.value) {
+        _uiState.update { it.copy(fillOutState = prevFillOutState.value) }
+        when (_uiState.value.fillOutState) {
             FillOutState.Confirmation -> {
                 processYesNoAnswer(text, currentAnswer)
             }
@@ -155,24 +170,23 @@ class FillOutWithSpeechViewModel @Inject constructor(
 
 
     private fun readSurvey() {
-        textState = ""
-        prevFillOutState.value = fillOutState.value
-        fillOutState.value = FillOutState.Start
+        prevFillOutState.value = _uiState.value.fillOutState
+        _uiState.update { it.copy(textState = "", fillOutState = FillOutState.Start) }
         textToSpeechManager?.speak(
-            "Hi! We are going to fill out the survey you received. The title of the survey is ${survey.value.title}. Can we start?",
+            "Hi! We are going to fill out the survey you received. The title of the survey is ${_uiState.value.survey.title}. Can we start?",
             "intro"
         )
     }
 
 
     fun onButtonClick() {
-        when (buttonState) {
+        when (_uiState.value.buttonState) {
             "START" -> {
                 readSurvey()
-                buttonState = "PAUSE"
+                _uiState.update { it.copy(buttonState = "PAUSE") }
             }
             "RESUME" -> {
-                if (currentQuestionIndex.intValue == -1) readSurvey()
+                if (_uiState.value.currentQuestionIndex == -1) readSurvey()
                 else {
                     when (prevFillOutState.value) {
                         FillOutState.Question -> readNextQuestion(false)
@@ -185,12 +199,11 @@ class FillOutWithSpeechViewModel @Inject constructor(
                         else -> {}
                     }
                 }
-                buttonState = "PAUSE"
+                _uiState.update { it.copy(buttonState = "PAUSE") }
             }
             "PAUSE" -> {
-                prevFillOutState.value = fillOutState.value
-                fillOutState.value = FillOutState.Stop
-                buttonState="RESUME"
+                prevFillOutState.value = _uiState.value.fillOutState
+                _uiState.update { it.copy(buttonState = "RESUME", fillOutState = FillOutState.Stop) }
             }
         }
     }
@@ -251,7 +264,7 @@ class FillOutWithSpeechViewModel @Inject constructor(
                     )
                 ), temperature = 0.6
             )
-            fillOutState.value = FillOutState.Thinking
+            _uiState.update { it.copy(fillOutState = FillOutState.Thinking) }
             var response: String?
 
             viewModelScope.launch {
@@ -262,7 +275,7 @@ class FillOutWithSpeechViewModel @Inject constructor(
 
                 if (completion != null) {
                     response = completion.choices.first().message.content
-                    fillOutState.value = FillOutState.Question
+                    _uiState.update { it.copy(fillOutState = FillOutState.Question) }
                     when (response) {
                         null -> {}
                         "no_response" -> {
@@ -303,16 +316,17 @@ class FillOutWithSpeechViewModel @Inject constructor(
     }
 
     private fun readNextQuestion(moveToNext: Boolean = true) {
-        textState = ""
+        //textState = ""
+        _uiState.update { it.copy(textState = "") }
         if (moveToNext) moveToNextQuestion()
-        if (currentQuestionIndex.intValue == survey.value.questions.size) {
+        if (_uiState.value.currentQuestionIndex == _uiState.value.survey.questions.size) {
             onEnding()
             return
         }
-        prevFillOutState.value = fillOutState.value
-        fillOutState.value = FillOutState.Question
+        prevFillOutState.value = _uiState.value.fillOutState
+        _uiState.update { it.copy(fillOutState = FillOutState.Question) }
         val question = getCurrentQuestion()
-        textToSpeechManager?.speak("Question ${currentQuestionIndex.intValue + 1}.", "num")
+        textToSpeechManager?.speak("Question ${_uiState.value.currentQuestionIndex + 1}.", "num")
         val type: String = when (question.type) {
 
             "multiple_choice" -> {
@@ -331,11 +345,11 @@ class FillOutWithSpeechViewModel @Inject constructor(
         if (!question.isRequired) required = "optional"
         textToSpeechManager?.speak(
             "${type}. It is $required to answer. ",
-            "question${currentQuestionIndex}_intro"
+            "question${_uiState.value.currentQuestionIndex}_intro"
         )
         textToSpeechManager?.speak(
             "${question.text} ",
-            "question${currentQuestionIndex}_intro"
+            "question${_uiState.value.currentQuestionIndex}_intro"
         )
         readOptions(question)
     }
@@ -343,38 +357,38 @@ class FillOutWithSpeechViewModel @Inject constructor(
     private fun readOptions(question: Question) {
 
         if (question.type == "short_answer") textToSpeechManager?.speak(
-            " ", "question${currentQuestionIndex}_answer"
+            " ", "question${_uiState.value.currentQuestionIndex}_answer"
         )
         if (question.type == "multiple_choice") {
             textToSpeechManager?.speak(
-                "The options are: ", "question${currentQuestionIndex}_options"
+                "The options are: ", "question${_uiState.value.currentQuestionIndex}_options"
             )
             for (optionIndex in question.options.indices) {
                 val option = question.options[optionIndex]
                 textToSpeechManager?.speak(
                     "${abc[optionIndex]}: $option",
-                    "question${currentQuestionIndex}_option${optionIndex}"
+                    "question${_uiState.value.currentQuestionIndex}_option${optionIndex}"
                 )
             }
             textToSpeechManager?.speak(
                 "Remember, you can only choose one. What is your answer? ",
-                "question${currentQuestionIndex}_answer"
+                "question${_uiState.value.currentQuestionIndex}_answer"
             )
         }
         if (question.type == "checkbox") {
             textToSpeechManager?.speak(
-                "The options are: ", "question${currentQuestionIndex}_options"
+                "The options are: ", "question${_uiState.value.currentQuestionIndex}_options"
             )
             for (optionIndex in question.options.indices) {
                 val option = question.options[optionIndex]
                 textToSpeechManager?.speak(
                     "${abc[optionIndex]}: $option",
-                    "question${currentQuestionIndex}_option${optionIndex}"
+                    "question${_uiState.value.currentQuestionIndex}_option${optionIndex}"
                 )
             }
             textToSpeechManager?.speak(
                 "You can choose multiple responses. What is your answer? ",
-                "question${currentQuestionIndex}_answer"
+                "question${_uiState.value.currentQuestionIndex}_answer"
             )
         }
     }
@@ -383,13 +397,12 @@ class FillOutWithSpeechViewModel @Inject constructor(
         textToSpeechManager?.speak(
             "You were inactive. If you want to resume, click the resume button. ", "inactivity"
         )
-        fillOutState.value = FillOutState.Stop
-        buttonState = "RESUME"
+        _uiState.update { it.copy(buttonState = "RESUME", fillOutState = FillOutState.Stop) }
     }
 
     private fun confirmAnswer(answer: Answer?) {
-        prevFillOutState.value = fillOutState.value
-        fillOutState.value = FillOutState.Confirmation
+        prevFillOutState.value = _uiState.value.fillOutState
+        _uiState.update { it.copy(fillOutState =FillOutState.Confirmation) }
         if (answer != null) {
             val message = "Your answer is: ${
                 if (answer.response.first()
@@ -414,7 +427,7 @@ class FillOutWithSpeechViewModel @Inject constructor(
             ), temperature = 0.6
         )
         var response: String?
-        fillOutState.value = FillOutState.Thinking
+        _uiState.update { it.copy(fillOutState = FillOutState.Thinking) }
         viewModelScope.launch {
             val timeout = 1.minutes // 1 minute timeout
             val maxRetries = 3 // Maximum number of retries
@@ -422,13 +435,13 @@ class FillOutWithSpeechViewModel @Inject constructor(
                 sendChatCompletionRequestWithRetry(chatCompletionRequest, timeout, maxRetries)
             if (completion != null) {
                 response = completion.choices.first().message.content
-                fillOutState.value = FillOutState.Question
+                _uiState.update { it.copy(fillOutState = FillOutState.Question) }
                 when (response) {
                     null -> {}
                     ("no") -> {
                         if(start) {
                             prevFillOutState.value = FillOutState.Start
-                            fillOutState.value = FillOutState.Stop
+                            _uiState.update { it.copy(fillOutState = FillOutState.Stop) }
                             textToSpeechManager?.speak(
                                 "Okay, let me know if you want to fill out the survey.", "no_start"
                             )
@@ -448,7 +461,7 @@ class FillOutWithSpeechViewModel @Inject constructor(
                         }
                         else if (end) {
                             textToSpeechManager?.speak("Okay, I am sending it.", "sending")
-                            fillOutState.value= FillOutState.Sent
+                            _uiState.update { it.copy(fillOutState = FillOutState.Sent) }
                             sendFilledOutSurvey()
 
                         } else {
@@ -482,8 +495,8 @@ class FillOutWithSpeechViewModel @Inject constructor(
     }
 
     private fun onEnding() {
-        prevFillOutState.value = fillOutState.value
-        fillOutState.value = FillOutState.End
+        prevFillOutState.value = _uiState.value.fillOutState
+        _uiState.update { it.copy(fillOutState = FillOutState.End) }
         textToSpeechManager?.speak(
             "We got to the end of the survey. Can I send your answer to the sender?", "survey_end"
         )
@@ -512,12 +525,15 @@ class FillOutWithSpeechViewModel @Inject constructor(
                 }
                 viewModelScope.launch {
                     delay(3000)
-                    textState = ""
+                    //textState = ""
+                    _uiState.update { it.copy(textState = "") }
                 }
             }
 
             is AppAction.Update -> {
-                textState += action.text
+//                textState += action.text
+                val textState = _uiState.value.textState + action.text
+                _uiState.update { it.copy(textState = textState) }
             }
 
         }
@@ -525,7 +541,7 @@ class FillOutWithSpeechViewModel @Inject constructor(
 
     private fun sendFilledOutSurvey() {
         val surveyResponse = SurveyResponse(
-            surveyId = survey.value.id, surveyTitle = survey.value.title, answers = answers
+            surveyId = _uiState.value.survey.id, surveyTitle = _uiState.value.survey.title, answers = answers
         )
         viewModelScope.launch {
             surveysRepository.fillOutSurvey(surveyResponse)
@@ -539,3 +555,13 @@ class FillOutWithSpeechViewModel @Inject constructor(
         data class Update(val text: String) : AppAction()
     }
 }
+
+data class FillOutWithSpeechUiState(
+    val survey: Survey = Survey(),
+    val currentQuestionIndex: Int = -1,
+    val textState: String = "",
+    val buttonState: String = "START",
+    val fillOutState: FillOutWithSpeechViewModel.FillOutState = FillOutWithSpeechViewModel.FillOutState.Initial
+)
+
+val FillOutWithSpeechUiState.currentQuestion:Question get() = if (currentQuestionIndex >= 0 && currentQuestionIndex<survey.questions.size) survey.questions[currentQuestionIndex] else Question()

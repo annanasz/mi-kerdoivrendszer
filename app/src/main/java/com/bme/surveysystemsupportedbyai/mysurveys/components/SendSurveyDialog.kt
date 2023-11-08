@@ -32,12 +32,12 @@ import com.bme.surveysystemsupportedbyai.domain.model.Survey
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SendSurveyDialog(
-    onSendClick: (Survey?, String) -> Unit,
+    onSendClick: (Survey?) -> Unit,
     onCancelClick: () -> Unit,
+    onEmailListChanged: (String)->Unit,
     emailList: String,
     selectedSurvey: Survey?
 ) {
-    var textFieldState by remember { mutableStateOf(emailList) }
     val keyboardController = LocalSoftwareKeyboardController.current
 
     Dialog(
@@ -52,9 +52,9 @@ fun SendSurveyDialog(
             ) {
                 Text("The emails of the recipients, separated by a comma:")
                 OutlinedTextField(
-                    value = textFieldState,
+                    value = emailList,
                     onValueChange = {
-                        textFieldState = it
+                        onEmailListChanged(it)
                     },
                     singleLine = false,
                     maxLines = 5,
@@ -86,7 +86,7 @@ fun SendSurveyDialog(
 
                     TextButton(
                         onClick = {
-                            onSendClick(selectedSurvey,textFieldState)
+                            onSendClick(selectedSurvey)
                         }
                     ) {
                         Text(text = "Send")

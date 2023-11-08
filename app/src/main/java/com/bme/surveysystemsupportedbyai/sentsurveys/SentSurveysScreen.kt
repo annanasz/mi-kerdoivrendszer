@@ -6,6 +6,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -19,7 +22,10 @@ fun SentSurveysSurveyScreen(
     viewModel: SentSurveysViewModel = hiltViewModel(),
     openDetailsScreen: (String) -> Unit
 ) {
-    val sentSurveys = viewModel.sentSurveys.collectAsStateWithLifecycle(initialValue = emptyList())
+    val uiState by viewModel.uiState.collectAsState()
+    LaunchedEffect(viewModel) {
+        viewModel.fetchData()
+    }
     Scaffold(
         topBar = {
             TopBar(
@@ -36,7 +42,7 @@ fun SentSurveysSurveyScreen(
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
-            SentSurveyList(surveys = sentSurveys.value, openDetailsScreen)
+            SentSurveyList(surveys = uiState.sentSurveys, openDetailsScreen)
         }
     }
 

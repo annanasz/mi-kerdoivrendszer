@@ -48,6 +48,7 @@ import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.WavingHand
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -57,9 +58,10 @@ import androidx.compose.ui.platform.LocalContext
 fun FillOutWithSpeechScreen(
     viewModel: FillOutWithSpeechViewModel = hiltViewModel(), navigateBack: () -> Unit
 ) {
-    val survey by viewModel.survey
+    val uiState by viewModel.uiState.collectAsState()
+    //val survey by viewModel.survey
     val context = LocalContext.current
-    val currentQuestion = viewModel.getCurrentQuestion()
+   // val currentQuestion = viewModel.getCurrentQuestion()
     var permission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -75,7 +77,7 @@ fun FillOutWithSpeechScreen(
 
     Scaffold(topBar = {
         TopAppBar(title = {
-            Text(text = if (survey.id.isNotEmpty()) "Fill out ${survey.title}" else "")
+            Text(text = if (uiState.survey.id.isNotEmpty()) "Fill out ${uiState.survey.title}" else "")
         }, navigationIcon = {
             IconButton(onClick = { navigateBack() }) {
                 Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
@@ -90,13 +92,13 @@ fun FillOutWithSpeechScreen(
                     .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                if (survey.id.isEmpty()) LoadingAnimation()
+                if (uiState.survey.id.isEmpty()) LoadingAnimation()
                 else Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    when (viewModel.fillOutState.value) {
+                    when (uiState.fillOutState) {
                         FillOutWithSpeechViewModel.FillOutState.Thinking -> LoadingAnimation()
                         FillOutWithSpeechViewModel.FillOutState.UserSpeaking -> ShowingIcon(
                             Icons.Default.Mic
@@ -117,7 +119,7 @@ fun FillOutWithSpeechScreen(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = viewModel.textState,
+                        text = uiState.textState,
                         fontSize = 24.sp,
                         color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.padding(0.dp)
@@ -131,16 +133,16 @@ fun FillOutWithSpeechScreen(
                             Column(modifier = Modifier.fillMaxWidth(), content = {
                                 // Display the current question
                                 Row {
-                                    if (viewModel.currentQuestionIndex.intValue >= 0 && viewModel.currentQuestionIndex.intValue < survey.questions.size) {
+                                    if (uiState.currentQuestionIndex >= 0 && uiState.currentQuestionIndex < uiState.survey.questions.size) {
                                         Text(
-                                            text = "${viewModel.currentQuestionIndex.intValue + 1}. ${currentQuestion.text}",
+                                            text = "${uiState.currentQuestionIndex + 1}. ${uiState.currentQuestion.text}",
                                             fontWeight = FontWeight.Bold,
                                             modifier = Modifier.padding(
                                                 vertical = 0.dp, horizontal = 16.dp
                                             )
                                         )
 
-                                        if (currentQuestion.isRequired) {
+                                        if (uiState.currentQuestion.isRequired) {
                                             Text(
                                                 text = " *",
                                                 color = Color.Red,
@@ -152,9 +154,9 @@ fun FillOutWithSpeechScreen(
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
 
-                                when (currentQuestion.type) {
+                                when (uiState.currentQuestion.type) {
                                     "multiple_choice" -> {
-                                        currentQuestion.options.forEach { option ->
+                                        uiState.currentQuestion.options.forEach { option ->
                                             Row(
                                                 modifier = Modifier.fillMaxWidth(),
                                                 verticalAlignment = Alignment.CenterVertically
@@ -171,7 +173,7 @@ fun FillOutWithSpeechScreen(
                                     }
 
                                     "checkbox" -> {
-                                        currentQuestion.options.forEach { option ->
+                                        uiState.currentQuestion.options.forEach { option ->
                                             Row(
                                                 modifier = Modifier.fillMaxWidth(),
                                                 verticalAlignment = Alignment.CenterVertically
@@ -204,14 +206,14 @@ fun FillOutWithSpeechScreen(
                     }
                 }
 
-                if (viewModel.fillOutState.value != FillOutWithSpeechViewModel.FillOutState.Sent) {
+                if (uiState.fillOutState != FillOutWithSpeechViewModel.FillOutState.Sent) {
                     Button(
                         onClick = { viewModel.onButtonClick() },
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
                             .padding(16.dp)
                     ) {
-                        Text(viewModel.buttonState)
+                        Text(uiState.buttonState)
                     }
                 }
 

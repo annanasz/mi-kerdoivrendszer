@@ -15,9 +15,15 @@ import com.bme.surveysystemsupportedbyai.domain.model.SurveyResponse
 import com.bme.surveysystemsupportedbyai.domain.repository.SurveysRepository
 import com.bme.surveysystemsupportedbyai.navigation.RESPONSE_ID
 import com.bme.surveysystemsupportedbyai.navigation.SURVEY_ID
+import com.bme.surveysystemsupportedbyai.surveyDetails.DetailsScreenUiState
 import com.bme.surveysystemsupportedbyai.surveyDetails.DetailsScreenViewModel
+import com.bme.surveysystemsupportedbyai.surveyDetails.SurveyDetailsScreenUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,14 +33,13 @@ class SentSurveyDetailsViewModel@Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val surveysRepository: SurveysRepository
 ) : ViewModel(), DetailsScreenViewModel {
+
+    private val _uiState = MutableStateFlow(SentSurveyDetailsScreenUiState())
+    override val uiState: StateFlow<DetailsScreenUiState> = _uiState.asStateFlow()
+
     var selectedTab by mutableIntStateOf(0)
-    override val survey = mutableStateOf(Survey())
-    override val answers = mutableStateOf(emptyMap<String, Answer>())
-    var responsesTest: Flow<List<SurveyResponse?>> = flowOf(emptyList())
     override fun onOptionSelected(option: String) {
     }
-
-     override val response: MutableState<SurveyResponse> = mutableStateOf(SurveyResponse())
 
     init {
         val responseId = savedStateHandle.get<String>(RESPONSE_ID)
@@ -42,12 +47,18 @@ class SentSurveyDetailsViewModel@Inject constructor(
         if (!surveyId.isNullOrEmpty()) {
             viewModelScope.launch {
                 if(!responseId.isNullOrEmpty()) {
-                    response.value = surveysRepository.getResponse(responseId) ?: SurveyResponse()
-                    answers.value= createAnswerMap(response.value.answers)
+                    val response = surveysRepository.getResponse(responseId) ?: SurveyResponse()
+                    _uiState.value = _uiState.value.copy(
+                        response = response,
+                        answers = com.bme.surveysystemsupportedbyai.surveyDetails.createAnswerMap(
+                            response.answers
+                        ))
                 }
-                survey.value =
-                    surveysRepository.getSurvey(surveyId) ?: Survey()
-                responsesTest = surveysRepository.getResponsesWithAnswersTest(surveyId)
+                val survey = surveysRepository.getSurvey(surveyId) ?: Survey()
+                _uiState.value = _uiState.value.copy(survey = survey)
+                surveysRepository.getResponsesWithAnswersTest(surveyId).collect{
+                    responses -> _uiState.value = _uiState.value.copy(responses = responses)
+                }
             }
         }
     }
@@ -62,3 +73,10 @@ class SentSurveyDetailsViewModel@Inject constructor(
         return answerMap
     }
 }
+
+data class SentSurveyDetailsScreenUiState(
+    override val survey: Survey = Survey(),
+    override val response: SurveyResponse = SurveyResponse(),
+    override val answers: Map<String, Answer> = emptyMap(),
+    val responses: List<SurveyResponse?> = emptyList()
+): DetailsScreenUiState
