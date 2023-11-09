@@ -104,6 +104,6 @@ class RealSpeechToText(context: Context, private val onInactivity: ()->Unit, rec
     }
 
     override fun stop() {
-        speechRecognizer.stopListening()
+        speechRecognizer.cancel()
     }
 }

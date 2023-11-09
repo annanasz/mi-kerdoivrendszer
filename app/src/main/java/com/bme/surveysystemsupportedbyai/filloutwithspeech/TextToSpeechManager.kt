@@ -3,6 +3,8 @@ package com.bme.surveysystemsupportedbyai.filloutwithspeech
 import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.util.Log
+import kotlinx.coroutines.delay
 
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -33,18 +35,29 @@ class TextToSpeechManager(context: Context, private val onInitCallback: () -> Un
     }
 
     fun speak(text: String, taskId: String) {
+        Log.e("TTS", "I entered the function: $taskId")
         synchronized(this) {
             utteranceQueue.offer(text to taskId)
-            if (utteranceQueue.size == 1 && !textToSpeech.isSpeaking) {
+            Log.e("TTS", "TTS queue added: $text")
+            if (utteranceQueue.size >= 1) {
                 val nextUtterance = utteranceQueue.poll()
                 if (nextUtterance != null) {
                     textToSpeech.speak(
                         nextUtterance.first, TextToSpeech.QUEUE_ADD, null, nextUtterance.second
                     )
+                    Log.e("TTS", "TTS spoke: $text")
                 }
             }
         }
     }
+    fun stopSpeaking() {
+        synchronized(this) {
+            textToSpeech.stop()
+            Log.e("TTS", "TTS queue cleared, was: ${utteranceQueue.joinToString(" ,")}")
+            utteranceQueue.clear()
+        }
+    }
+
     fun shutdown() {
         textToSpeech.stop()
         textToSpeech.shutdown()

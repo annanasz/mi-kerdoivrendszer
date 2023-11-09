@@ -30,12 +30,14 @@ import javax.inject.Inject
 import com.aallam.openai.client.OpenAI
 import com.bme.surveysystemsupportedbyai.domain.model.Answer
 import com.bme.surveysystemsupportedbyai.domain.model.SurveyResponse
+import com.bme.surveysystemsupportedbyai.domain.repository.OpenAIRepository
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeoutOrNull
+import okhttp3.internal.wait
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -44,24 +46,19 @@ import kotlin.time.Duration.Companion.seconds
 class FillOutWithSpeechViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val surveysRepository: SurveysRepository,
+    private val openAIRepository: OpenAIRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
-    //val survey = mutableStateOf(Survey())
     private var textToSpeechManager: TextToSpeechManager? = null
-    //val currentQuestionIndex = mutableIntStateOf(-1)
     private var speechToText: SpeechToText? = null
-    //var textState by mutableStateOf("Press the button to start")
-    //var buttonState by mutableStateOf("START")
     private var abc2 =
         listOf("A. ", "B. ", "C. ", "D. ", "E. ", "F. ", "G. ", "H. ", "I. ", "J. ", "K. ", "L. ")
     private var abc =
         listOf("AY. ", "B. ", "C. ", "D. ", "E. ", "F. ", "G. ", "H. ", "I. ", "J. ", "K. ", "L. ")
-    private val apiKey = BuildConfig.OPENAI_API_KEY
-    private var openai: OpenAI? = null
     private val answers = mutableListOf<Answer>()
-    //var fillOutState = mutableStateOf(FillOutState.Initial)
     private var prevFillOutState = mutableStateOf(FillOutState.Stop)
     private var currentAnswer: Answer? = null
+    private var paused = false
 
     enum class FillOutState { Start, End, Confirmation, Question, Stop, Thinking, UserSpeaking, Sent, Initial }
 
@@ -78,35 +75,31 @@ class FillOutWithSpeechViewModel @Inject constructor(
                         "_end"
                     )
                 ) {
-                    if(_uiState.value.fillOutState!= FillOutState.Stop) {
+                    if (_uiState.value.fillOutState != FillOutState.Stop) {
                         _uiState.update { it.copy(textState = "") }
-                        //textState = ""
                         prevFillOutState.value = _uiState.value.fillOutState
                         _uiState.update { it.copy(fillOutState = FillOutState.UserSpeaking) }
                         send(AppAction.StartRecord)
                     }
+                } else {
+                    if (_uiState.value.fillOutState != FillOutState.Stop) {
+                        textToSpeechManager?.nextItem()
+                    }
                 }
-                else textToSpeechManager?.nextItem()
             }
 
             @Deprecated("Deprecated in Java")
             override fun onError(utteranceId: String) {
+                Log.e("TTS", "Error in speech with utteranceId: $utteranceId")
             }
         }
 
 
     init {
-//        val surveyId = savedStateHandle.get<String>(SURVEY_ID)
-//        if (surveyId != null) {
-//            viewModelScope.launch {
-//                survey.value = surveysRepository.getSurvey(surveyId.idFromParameter()) ?: Survey()
-//            }
-//        }
         val surveyId = savedStateHandle.get<String>(SURVEY_ID)
         if (surveyId != null) {
             viewModelScope.launch {
                 surveysRepository.getSurvey(surveyId.idFromParameter())?.let { survey ->
-                    //_uiState.value = _uiState.value.copy(survey = survey)
                     _uiState.update { it.copy(survey = survey) }
                 }
             }
@@ -127,12 +120,9 @@ class FillOutWithSpeechViewModel @Inject constructor(
                 }
             }
         }
-        openai = OpenAI(
-            token = apiKey, timeout = Timeout(socket = 90.seconds)
-        )
     }
 
-   private fun getCurrentQuestion(): Question {
+    private fun getCurrentQuestion(): Question {
         val index = _uiState.value.currentQuestionIndex
         return if (index >= 0) _uiState.value.survey.questions.getOrNull(index) ?: Question()
         else Question()
@@ -141,7 +131,7 @@ class FillOutWithSpeechViewModel @Inject constructor(
     private fun moveToNextQuestion() {
         val index = _uiState.value.currentQuestionIndex
         if (index <= _uiState.value.survey.questions.size - 1) {
-            _uiState.value = _uiState.value.copy(currentQuestionIndex = index+1)
+            _uiState.value = _uiState.value.copy(currentQuestionIndex = index + 1)
         }
     }
 
@@ -183,9 +173,13 @@ class FillOutWithSpeechViewModel @Inject constructor(
         when (_uiState.value.buttonState) {
             "START" -> {
                 readSurvey()
+                paused = false
                 _uiState.update { it.copy(buttonState = "PAUSE") }
             }
+
             "RESUME" -> {
+                paused = false
+                textToSpeechManager?.stopSpeaking()
                 if (_uiState.value.currentQuestionIndex == -1) readSurvey()
                 else {
                     when (prevFillOutState.value) {
@@ -193,55 +187,35 @@ class FillOutWithSpeechViewModel @Inject constructor(
                         FillOutState.Confirmation -> confirmAnswer(
                             currentAnswer
                         )
+
                         FillOutState.End -> {
                             onEnding()
                         }
-                        else -> {}
+
+                        FillOutState.Thinking -> readNextQuestion(false)
+                        FillOutState.UserSpeaking -> readNextQuestion(false)
+                        else -> {
+
+                        }
                     }
                 }
                 _uiState.update { it.copy(buttonState = "PAUSE") }
             }
+
             "PAUSE" -> {
+                paused = true
                 prevFillOutState.value = _uiState.value.fillOutState
-                _uiState.update { it.copy(buttonState = "RESUME", fillOutState = FillOutState.Stop) }
-            }
-        }
-    }
-
-    private suspend fun sendChatCompletionRequestWithRetry(
-        request: ChatCompletionRequest, timeout: Duration, maxRetries: Int
-    ): ChatCompletion? {
-        var retries = 0
-
-        suspend fun doRequest(): ChatCompletion? {
-            return withTimeoutOrNull(timeout) {
-                openai?.chatCompletion(request)
-            }
-        }
-
-        while (retries <= maxRetries) {
-            try {
-                val completion = doRequest()
-
-                if (completion != null) {
-                    return completion
-                } else {
-                    Log.d("openai", "Retrying request (attempt $retries)...")
-                    textToSpeechManager?.speak("I am processing the answer. Please wait", "proc")
-                    retries++
-                    delay(100)
+                _uiState.update {
+                    it.copy(
+                        buttonState = "RESUME",
+                        fillOutState = FillOutState.Stop
+                    )
                 }
-            } catch (e: OpenAIServerException) {
-                Log.e("OpenAI", "OpenAI Server Exception: ${e.message}")
-                retries++
-            } catch (e: Exception) {
-                Log.e("OpenAI", "An unexpected exception occurred: ${e.message}")
-                retries++
+                textToSpeechManager?.stopSpeaking()
+                speechToText?.stop()
             }
         }
-        return null
     }
-
 
     private fun processAnswer(text: String) {
         val question = getCurrentQuestion()
@@ -268,37 +242,41 @@ class FillOutWithSpeechViewModel @Inject constructor(
             var response: String?
 
             viewModelScope.launch {
-                val timeout = 1.minutes
-                val maxRetries = 3
-                val completion =
-                    sendChatCompletionRequestWithRetry(chatCompletionRequest, timeout, maxRetries)
+                response = openAIRepository.sendQuestion(system, message) {
+                    textToSpeechManager?.speak(
+                        "I am processing the answer. Please wait. ",
+                        "proc"
+                    )
+                }
+                if (response != "Service Unavailable") {
+                    if (!paused) {
+                        _uiState.update { it.copy(fillOutState = FillOutState.Question) }
+                        when (response) {
+                            null -> {}
+                            "no_response" -> {
+                                noResponse()
+                            }
 
-                if (completion != null) {
-                    response = completion.choices.first().message.content
-                    _uiState.update { it.copy(fillOutState = FillOutState.Question) }
-                    when (response) {
-                        null -> {}
-                        "no_response" -> {
-                            noResponse()
-                        }
+                            "too_many_options" -> {
+                                tooManyOptions()
+                            }
 
-                        "too_many_options" -> {
-                            tooManyOptions()
-                        }
-
-                        else -> {
-                            val gson = Gson()
-                            val answer = gson.fromJson(response, Answer::class.java)
-                            answer.type = question.type
-                            answer.questionId = question.id
-                            currentAnswer = answer
-                            confirmAnswer(answer)
+                            else -> {
+                                val gson = Gson()
+                                val answer = gson.fromJson(response, Answer::class.java)
+                                answer.type = question.type
+                                answer.questionId = question.id
+                                currentAnswer = answer
+                                confirmAnswer(answer)
+                            }
                         }
                     }
                 } else {
-                    textToSpeechManager?.speak("Sorry, I am currently unavailable.", "err")
+                    if (!paused)
+                        textToSpeechManager?.speak("Sorry, I am currently unavailable.", "err")
                 }
-            }}
+            }
+        }
     }
 
     private fun noResponse() {
@@ -316,7 +294,7 @@ class FillOutWithSpeechViewModel @Inject constructor(
     }
 
     private fun readNextQuestion(moveToNext: Boolean = true) {
-        //textState = ""
+        Log.e("TTS", "readnext")
         _uiState.update { it.copy(textState = "") }
         if (moveToNext) moveToNextQuestion()
         if (_uiState.value.currentQuestionIndex == _uiState.value.survey.questions.size) {
@@ -394,6 +372,7 @@ class FillOutWithSpeechViewModel @Inject constructor(
     }
 
     private fun onInactivity() {
+        paused = true
         textToSpeechManager?.speak(
             "You were inactive. If you want to resume, click the resume button. ", "inactivity"
         )
@@ -402,7 +381,7 @@ class FillOutWithSpeechViewModel @Inject constructor(
 
     private fun confirmAnswer(answer: Answer?) {
         prevFillOutState.value = _uiState.value.fillOutState
-        _uiState.update { it.copy(fillOutState =FillOutState.Confirmation) }
+        _uiState.update { it.copy(fillOutState = FillOutState.Confirmation) }
         if (answer != null) {
             val message = "Your answer is: ${
                 if (answer.response.first()
@@ -413,67 +392,77 @@ class FillOutWithSpeechViewModel @Inject constructor(
         }
     }
 
-    private fun processYesNoAnswer(text: String, answer: Answer?, end: Boolean =false, start:Boolean = false) {
+    private fun processYesNoAnswer(
+        text: String,
+        answer: Answer?,
+        end: Boolean = false,
+        start: Boolean = false
+    ) {
         if (answer == null) return
         val system =
             "I asked a user a yes or no question. Based on their answer, did they say yes or no? You have to say just \"yes\" or \"no\". "
-        val chatCompletionRequest = ChatCompletionRequest(
-            model = ModelId("gpt-3.5-turbo"), messages = listOf(
-                ChatMessage(
-                    role = ChatRole.System, content = system
-                ), ChatMessage(
-                    role = ChatRole.User, content = text
-                )
-            ), temperature = 0.6
-        )
         var response: String?
         _uiState.update { it.copy(fillOutState = FillOutState.Thinking) }
         viewModelScope.launch {
-            val timeout = 1.minutes // 1 minute timeout
-            val maxRetries = 3 // Maximum number of retries
-            val completion =
-                sendChatCompletionRequestWithRetry(chatCompletionRequest, timeout, maxRetries)
-            if (completion != null) {
-                response = completion.choices.first().message.content
-                _uiState.update { it.copy(fillOutState = FillOutState.Question) }
-                when (response) {
-                    null -> {}
-                    ("no") -> {
-                        if(start) {
-                            prevFillOutState.value = FillOutState.Start
-                            _uiState.update { it.copy(fillOutState = FillOutState.Stop) }
+            response = openAIRepository.sendQuestion(system, text) {
+                textToSpeechManager?.speak(
+                    "I am processing the answer. Please wait. ",
+                    "proc"
+                )
+            }
+            if (response != "Service Unavailable") {
+                if (!paused) {
+                    _uiState.update { it.copy(fillOutState = FillOutState.Question) }
+                    when (response) {
+                        null -> {
                             textToSpeechManager?.speak(
-                                "Okay, let me know if you want to fill out the survey.", "no_start"
+                                "ona.",
+                                "no_start"
                             )
                         }
-                        else if (end) textToSpeechManager?.speak(
-                            "Okay, let me know if you want to send it.", "no_send"
-                        )
-                        else {
-                            textToSpeechManager?.speak("Okay, I repeat the question. ", "repeat")
-                            readNextQuestion(false)
+
+                        ("no") -> {
+                            if (start) {
+                                prevFillOutState.value = FillOutState.Start
+                                _uiState.update { it.copy(fillOutState = FillOutState.Stop) }
+                                textToSpeechManager?.speak(
+                                    "Okay, let me know if you want to fill out the survey.",
+                                    "no_start"
+                                )
+                            } else if (end) textToSpeechManager?.speak(
+                                "Okay, let me know if you want to send it.", "no_send"
+                            )
+                            else {
+                                textToSpeechManager?.speak(
+                                    "Okay, I repeat the question. ",
+                                    "repeat"
+                                )
+                                readNextQuestion(false)
+                            }
                         }
-                    }
 
-                    "yes" -> {
-                        if(start){
-                            readNextQuestion()
+                        "yes" -> {
+                            if (start) {
+                                readNextQuestion()
+                            } else if (end) {
+                                textToSpeechManager?.speak("Okay, I am sending it.", "sending")
+                                _uiState.update { it.copy(fillOutState = FillOutState.Sent) }
+                                sendFilledOutSurvey()
+
+                            } else {
+                                textToSpeechManager?.speak("Answer saved. ", "saved")
+                                delay(200)
+                                answers.add(answer)
+                                readNextQuestion()
+                            }
                         }
-                        else if (end) {
-                            textToSpeechManager?.speak("Okay, I am sending it.", "sending")
-                            _uiState.update { it.copy(fillOutState = FillOutState.Sent) }
-                            sendFilledOutSurvey()
-
-                        } else {
-                            textToSpeechManager?.speak("Answer saved. ", "saved")
-                            delay(100)
-                            answers.add(answer)
-
-                            readNextQuestion()
+                        else -> {
+                            Log.e("TTS", "else respomse")
                         }
                     }
                 }
             } else {
+                _uiState.update { it.copy(fillOutState = FillOutState.Question) }
                 textToSpeechManager?.speak("Sorry, I am currently unavailable.", "err")
             }
         }
@@ -483,13 +472,89 @@ class FillOutWithSpeechViewModel @Inject constructor(
         var system = ""
         when (question.type) {
             "multiple_choice" -> system =
-                "Understand the answer. Provide the user's response to a survey question without the initial letters (A. (= first), B. (= second), C. (= third), D...) from the options. If the user selects more than one option, return \"too_many_options\". Else if the question is NOT required and the user doesn't want to respond, return {\"response\": [\"\"]} . If the question is REQUIRED  and the answer's meaning does not match any of the options, return \"no_response\". Note that sometimes the answer starts with \"my answer is..\", which can be cut off. Required questions must have answers. if the answer is \"too_many_options\" or \"no_response\" return that. Else return the answer in JSON format, as follows: {\"response\": [\"Option Text\"]} to match the class structure Answer(var response: List<String). It can not contain anything else than the given option texts."
+                "Provide the user's response to the question without the initial letters (A. (= first), B. (= second), C. (= third), D...) from the options. Never provide more than one answers! If the user selects more than one option, return \"too_many_options\". Else if the question is NOT required and the user doesn't want to respond, return {\"response\": [\"\"]} . If the question is REQUIRED  and the answer's meaning does not match any of the options or the user doesn't want to respond, return \"no_response\". Required questions must have answers, so you can't return {\"response\": [\"\"]}. If there is not a single answer, return either \"no_response\", or \"too_many_options\"  if the answer is \"too_many_options\" or \"no_response\" return that. Else return the answer in JSON format, as follows: {\"response\": [\"Option Text\"]} to match the class structure Answer(var response: List<String>). It can NOT contain anything else than the given option texts. Few examples:\n" +
+                        "1. example:\n" +
+                        "user: \"not required question: \"Are you a boy?\"; options: A. \"Yes\", B. \"No\".\n" +
+                        "answer: \"b b b\".\n" +
+                        "assistant:{\"response\": [\"No\"]}\n" +
+                        "2. example:\n" +
+                        "user: \"required question: \"Who wrote Romeo and Juliet?\"; options: A. \"Charles Dickens\", B. \"William Shakespeare\", C. \"Jane Austen\", D. \"F. Scott Fitzgerald\".\n" +
+                        "answer: \"I think it was A no it was Shakespeare\".\n" +
+                        "assistant:{\"response\": [ \"William Shakespeare\"]}\n" +
+                        "3. example:\n" +
+                        "user: \"required question: \"Are you hungry?\"; options: A. \"Yes\", B. \"No\".\n" +
+                        "answer: \"yes\".\n" +
+                        "assistant:{\"response\": [ \"Yes\"]}\n" +
+                        "4. example:\n" +
+                        "user: \"not required question: \"Are you hungry?\"; options: A. \"Yes\", B. \"No\".\n" +
+                        "answer: \"yes but I don't want to tell you\".\n" +
+                        "assistant:{\"response\": [\"\"]}\n" +
+                        "5. example:\n" +
+                        "user: \"not required question: \"Are you a boy?\"; options: A. \"Yes\", B. \"No\".\n" +
+                        "answer: \"Yes and no.\".\n" +
+                        "assistant:\"too_many_options\"\n" +
+                        "6. example:\n" +
+                        "user: \"required question: \"Are you hungry?\"; options: A. \"Yes\", B. \"No\".\n" +
+                        "answer: \"I don't respond\".\n" +
+                        "assistant:\"no_response\"\n" +
+                        "7. example:\n" +
+                        "user: \"required question: \"Who wrote Romeo and Juliet?\"; options: A. \"Charles Dickens\", B. \"William Shakespeare\", C. \"Jane Austen\", D. \"F. Scott Fitzgerald\".\n" +
+                        "answer: \"The third one\".\n" +
+                        "assistant:{\"response\": [ \"Jane Austen\"]}"
 
             "checkbox" -> system =
-                "Understand the answer. Provide the user's response to a survey question without the initial letters (A. , B. , C. , D.) from the options. The option texts have to remain exactly the same. The user can respond with the letter of the option as well, then use the option text as response.  If the question is NOT required and the user doesn't want to respond, return {\"response\": [\"\"]}. If the user's response is not in the options, return \"no_response\". Required questions must have answers. if the answer is \"no_response\" return that. Else return the answer or answers in JSON format, as follows: {\"response\": [\"Option Text1\",\"OptionText2\"]} to match the class structure Answer(var response: List<String). It can not contain anything else than the given option texts."
+                "Provide the user's response to a question without the initial letters (A. , B. , C. , D.) from the options. The option texts have to remain exactly the same. The user can respond with the letter of the option as well, then use the option text as response. If the question is NOT required and the user doesn't want to respond, return {\"response\": [\"\"]}. If the user's response is not in the options, return \"no_response\". If the question is REQUIRED  and the answer's meaning does not match any of the options, return \"no_response\". Required questions must have an answer, so you can't return {\"response\": [\"\"]} in that case. If the answer is \"no_response\" return that. Else return the answer or answers in JSON format, as follows: {\"response\": [\"Option Text1\",\"Option Text2\"]} to match the class structure Answer(var response: List<String). It can not contain anything else than the given option texts. Few examples:\n" +
+                        "1. example:\n" +
+                        "user: \"not required question: \"What are your hobbies?\"; options: A. \"Running\", B. \"Gym\", C. \"Skydiving\".\n" +
+                        "answer: \"b b b\".\n" +
+                        "assistant:{\"response\": [\"Gym\"]}\n" +
+                        "2. example:\n" +
+                        "user: \"not required question: \"What are your hobbies?\"; options: A. \"Running\", B. \"Gym\", C. \"Skydiving\".\n" +
+                        "answer: \"hmm I like tennis\".\n" +
+                        "assistant: \"no_response\"\n" +
+                        "3. example:\n" +
+                        "user: \"not required question: \"What is your favorite drink?\"; options: A. \"Coffee\", B. \"Matcha\", C. \"Tea\", D. \"Beer\".\n" +
+                        "answer: \"skip this question\".\n" +
+                        "assistant:{\"response\": [\"\"]}\n" +
+                        "4. example:\n" +
+                        "user: \"required question: \"What foods do you like?\"; options: A. \"Pizza\", B. \"Pasta\", C. \"Steak\".\n" +
+                        "answer: \"Pasta but I don't want to answer\".\n" +
+                        "assistant:\"no_response\"\n" +
+                        "5. example:\n" +
+                        "user: \"required question: \"What is your favorite drink?\"; options: A. \"Coffee\", B. \"Matcha\", C. \"Tea\", D. \"Beer\".\n" +
+                        "answer: \"coffee and  matcha\".\n" +
+                        "assistant:{\"response\": [\"Coffee\", \"Matcha\"]}\n" +
+                        "6. example:\n" +
+                        "user: \"required question: \"Are you hungry?\"; options: A. \"Yes\", B. \"No\".\n" +
+                        "answer: \"I don't respond\".\n" +
+                        "assistant:\"no_response\""
 
             "short_answer" -> system =
-                "Understand the answer. Provide the user's response to a survey question. If the question is NOT required and the user doesn't want to answer, return {\"response\": [\"\"]}. Required questions must have answers. Note that sometimes the answer starts with \"my answer is..\", which can be cut off. Return the answer or answers in JSON format, as follows: {\"response\": [\"answer\"]} to match the class structure Answer(var response: List<String)."
+                "Provide the user's response to a survey question. If the question is NOT required and the user doesn't want to answer, return {\"response\": [\"\"]}. If the question is REQUIRED  and the user doesn't want to respond, return \"no_response\". Required questions must have an answer, so you can't return {\"response\": [\"\"]} in that case. Note that sometimes the answer starts with \"my answer is..\", which can be cut off. If the user responds in a way that half of the question is in it, cut that off too. Return the answer or answers in JSON format, as follows: {\"response\": [\"answer\"]} to match the class structure Answer(var response: List<String). Few examples:\n" +
+                        "1. example:\n" +
+                        "user: \"not required question: \"What are your hobbies?\"\n" +
+                        "answer: \"my hobby is running or no it is swimming\".\n" +
+                        "assistant:{\"response\": [\"Swimming\"]}\n" +
+                        "2. example:\n" +
+                        "user: \"not required question: \"What is your name?\"\n" +
+                        "answer: \"my name is carol\".\n" +
+                        "assistant:{\"response\": [\"Carol\"]}\n" +
+                        "3. example:\n" +
+                        "user: \"not required question: \"How old are you?\"\n" +
+                        "answer: \"my answer is twenty\".\n" +
+                        "assistant:{\"response\": [\"20\"]}\n" +
+                        "4. example:\n" +
+                        "user: \"not required question: \"How old are you?\"\n" +
+                        "answer: \"I don't want to answer\".\n" +
+                        "assistant:{\"response\": [\"\"]}\n" +
+                        "5. example:\n" +
+                        "user: \"not required question: \"Who is your favorite singer?\"\n" +
+                        "answer: \"My favorite singer is Miley Cyrus but I don't want to tell you\".\n" +
+                        "assistant:{\"response\": [\"\"]}\n" +
+                        "6. example:\n" +
+                        "user: \"required question: \"What is your favorite color?\"\n" +
+                        "answer: \"I don't want to answer\".\n" +
+                        "assistant:\"no_response\""
         }
         return system
     }
@@ -531,22 +596,29 @@ class FillOutWithSpeechViewModel @Inject constructor(
             }
 
             is AppAction.Update -> {
-//                textState += action.text
                 val textState = _uiState.value.textState + action.text
                 _uiState.update { it.copy(textState = textState) }
             }
 
+            else -> {}
         }
     }
 
     private fun sendFilledOutSurvey() {
         val surveyResponse = SurveyResponse(
-            surveyId = _uiState.value.survey.id, surveyTitle = _uiState.value.survey.title, answers = answers
+            surveyId = _uiState.value.survey.id,
+            surveyTitle = _uiState.value.survey.title,
+            answers = answers
         )
         viewModelScope.launch {
             surveysRepository.fillOutSurvey(surveyResponse)
             textToSpeechManager?.speak("Survey response sent!", "sending_done")
         }
+    }
+
+    fun onScreenDisposed() {
+        textToSpeechManager?.stopSpeaking()
+        speechToText?.stop()
     }
 
     sealed class AppAction {
@@ -564,4 +636,4 @@ data class FillOutWithSpeechUiState(
     val fillOutState: FillOutWithSpeechViewModel.FillOutState = FillOutWithSpeechViewModel.FillOutState.Initial
 )
 
-val FillOutWithSpeechUiState.currentQuestion:Question get() = if (currentQuestionIndex >= 0 && currentQuestionIndex<survey.questions.size) survey.questions[currentQuestionIndex] else Question()
+val FillOutWithSpeechUiState.currentQuestion: Question get() = if (currentQuestionIndex >= 0 && currentQuestionIndex < survey.questions.size) survey.questions[currentQuestionIndex] else Question()
