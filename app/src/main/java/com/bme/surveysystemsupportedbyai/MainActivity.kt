@@ -10,6 +10,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.bme.surveysystemsupportedbyai.navigation.Graph
 import com.bme.surveysystemsupportedbyai.navigation.RootNavGraph
+import com.bme.surveysystemsupportedbyai.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -34,32 +35,9 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun  AuthState() : String {
         val isUserSignedOut = viewModel.getAuthState().collectAsState().value
-//        if (isUserSignedOut) {
-//            NavigateToSignInScreen()
-//        } else {
-//            /*if (viewModel.isEmailVerified) {
-//                //NavigateToProfileScreen()
-//            } else {
-//                //NavigateToVerifyEmailScreen()
-//            }*/
-//            NavigateToHomeScreen()
-//        }
         if(isUserSignedOut)
             return Graph.AUTH
         else return Graph.MAIN
-    }
-    @Composable
-    private fun NavigateToSignInScreen() = navController.navigate(Graph.AUTH) {
-        popUpTo(Graph.MAIN) {
-            inclusive = true
-        }
-    }
-
-    @Composable
-    private fun NavigateToHomeScreen() = navController.navigate(Graph.MAIN) {
-        popUpTo(Graph.AUTH) {
-            inclusive = true
-        }
     }
 
 }

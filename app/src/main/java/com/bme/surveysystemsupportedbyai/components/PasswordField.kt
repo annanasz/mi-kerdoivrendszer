@@ -1,5 +1,6 @@
 package com.bme.surveysystemsupportedbyai.components
 
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
@@ -14,19 +15,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import com.bme.surveysystemsupportedbyai.core.Constants.PASSWORD_LABEL
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun PasswordField(
     password: TextFieldValue,
     onPasswordValueChange: (newValue: TextFieldValue) -> Unit
 ) {
     var passwordIsVisible: Boolean by remember { mutableStateOf(false) }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     OutlinedTextField(
         value = password,
@@ -44,8 +49,14 @@ fun PasswordField(
         } else {
             PasswordVisualTransformation()
         },
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Password
+        keyboardOptions = KeyboardOptions.Default.copy(
+            imeAction = ImeAction.Done,
+            keyboardType = KeyboardType.Email
+        ),
+        keyboardActions = KeyboardActions(
+            onDone = {
+                keyboardController?.hide()
+            }
         ),
         trailingIcon = {
             val icon = if (passwordIsVisible) {

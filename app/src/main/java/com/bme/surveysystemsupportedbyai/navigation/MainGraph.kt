@@ -8,17 +8,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.bme.surveysystemsupportedbyai.core.Constants
-import com.bme.surveysystemsupportedbyai.filledoutsurveys.FilledOutSurveyScreen
-import com.bme.surveysystemsupportedbyai.filloutwithspeech.FillOutWithSpeechScreen
-import com.bme.surveysystemsupportedbyai.inboxsurveys.InboxSurveyScreen
-import com.bme.surveysystemsupportedbyai.mysurveys.MySurveysSurveyScreen
-import com.bme.surveysystemsupportedbyai.mysurveys.SURVEY_ID
-import com.bme.surveysystemsupportedbyai.scansurveyscreen.ScanSurveyScreen
-import com.bme.surveysystemsupportedbyai.sentsurveydetails.SentSurveyDetailsScreen
-import com.bme.surveysystemsupportedbyai.sentsurveys.SentSurveysSurveyScreen
-import com.bme.surveysystemsupportedbyai.surveyDetails.SurveyDetailsScreen
-import com.bme.surveysystemsupportedbyai.surveyedit.SurveyEditScreen
-import com.bme.surveysystemsupportedbyai.surveyfillout.SurveyFillOutScreen
+import com.bme.surveysystemsupportedbyai.ui.filledoutsurveys.FilledOutSurveyScreen
+import com.bme.surveysystemsupportedbyai.ui.filloutwithspeech.FillOutWithSpeechScreen
+import com.bme.surveysystemsupportedbyai.ui.inboxsurveys.InboxSurveyScreen
+import com.bme.surveysystemsupportedbyai.ui.mysurveys.MySurveysSurveyScreen
+import com.bme.surveysystemsupportedbyai.ui.mysurveys.SURVEY_ID
+import com.bme.surveysystemsupportedbyai.ui.scansurveyscreen.ScanSurveyScreen
+import com.bme.surveysystemsupportedbyai.ui.sentsurveydetails.SentSurveyDetailsScreen
+import com.bme.surveysystemsupportedbyai.ui.sentsurveys.SentSurveysSurveyScreen
+import com.bme.surveysystemsupportedbyai.ui.surveyDetails.SurveyDetailsScreen
+import com.bme.surveysystemsupportedbyai.ui.surveyedit.SurveyEditScreen
+import com.bme.surveysystemsupportedbyai.ui.surveyfillout.SurveyFillOutScreen
 
 
 @Composable
@@ -43,18 +43,13 @@ fun MainGraph(
         composable(
             route = Screen.FilledOutSurveysScreen.route
         ) {
-            FilledOutSurveyScreen(openDetailsScreen = { route -> navController.navigate(route) })
+            FilledOutSurveyScreen(openDetailsScreen = { route -> navController.navigate(route) }, paddingValues = paddingValues)
         }
         composable(
             route = Screen.InboxSurveysScreen.route
         ) {
             InboxSurveyScreen(openFillOutScreen = { route -> navController.navigate(route) })
         }
-//        composable("${Screen.SurveyDetailsScreen.route}$SURVEY_ID_ARG") {
-//            SurveyDetailsScreen(navigateBack = {
-//                navController.popBackStack()
-//            })
-//        }
         composable("${Screen.SurveyEditScreen.route}$SURVEY_ID_ARG") {
             val previousDestination = navController.previousBackStackEntry?.destination?.route
             navController.previousBackStackEntry?.destination?.arguments?.get(
@@ -84,12 +79,12 @@ fun MainGraph(
                 )
             }, openScanner={surveyId -> navController.navigate("${Screen.ScanSurveyScreen.route}?$SURVEY_ID=${surveyId}")}, deleteSurvey = deleteSurvey)
         }
-        composable("${Screen.SurveyFillOutScreen.route}$SURVEY_ID_ARG") {
+        composable("${Screen.SurveyFillOutScreen.route}$SURVEY_ID_ARG$RECEIVED_ID_ARG") {
             SurveyFillOutScreen(navigateBack = {
                 navController.popBackStack()
             })
         }
-        composable("${Screen.FillOutSurveyWithSpeechScreen.route}$SURVEY_ID_ARG") {
+        composable("${Screen.FillOutSurveyWithSpeechScreen.route}$SURVEY_ID_ARG$RECEIVED_ID_ARG") {
             FillOutWithSpeechScreen(navigateBack = {
                 navController.popBackStack()
             })
@@ -113,7 +108,7 @@ fun MainGraph(
         composable("${Screen.ScanSurveyScreen.route}$SURVEY_ID_ARG",
             arguments = listOf(
                 navArgument("surveyId"){
-                    defaultValue="none"
+                    defaultValue=""
                     type= NavType.StringType
                 }
             )){
@@ -139,5 +134,7 @@ fun MainGraph(
 
 const val SURVEY_ID = "surveyId"
 const val RESPONSE_ID = "responseId"
+const val RECEIVED_ID = "receivedId"
+const val RECEIVED_ID_ARG = "&$RECEIVED_ID={$RECEIVED_ID}"
 const val SURVEY_ID_ARG = "?$SURVEY_ID={$SURVEY_ID}"
 const val RESPONSE_ID_ARG = "&$RESPONSE_ID={$RESPONSE_ID}"

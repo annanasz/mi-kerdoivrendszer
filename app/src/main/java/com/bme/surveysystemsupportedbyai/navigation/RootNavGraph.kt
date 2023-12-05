@@ -4,7 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.bme.surveysystemsupportedbyai.home.HomeScreen
+import com.bme.surveysystemsupportedbyai.ui.home.HomeScreen
+import com.bme.surveysystemsupportedbyai.ui.theme.AppTheme
 
 @Composable
 fun RootNavGraph(
@@ -18,7 +19,10 @@ fun RootNavGraph(
     ) {
         authGraph(navController = navController)
         composable(route = Graph.MAIN) {
-            HomeScreen()
+            AppTheme {
+                HomeScreen()
+            }
+
         }
     }
 }

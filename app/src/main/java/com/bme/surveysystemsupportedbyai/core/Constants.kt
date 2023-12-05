@@ -1,12 +1,20 @@
 package com.bme.surveysystemsupportedbyai.core
 
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import com.bme.surveysystemsupportedbyai.R
+
 object Constants {
+    val titleFontFamily = FontFamily(
+        Font(R.font.changaone_regular)
+    )
+
     const val SIGN_IN_SCREEN = "Sign in"
     const val REGISTER_SCREEN = "Register"
-    const val MY_SURVEYS_SCREEN = "MySurveys"
-    const val SENT_SURVEYS_SCREEN = "SentSurveys"
-    const val FILLED_OUT_SURVEYS_SCREEN = "FilledOutSurveys"
-    const val INBOX_SURVEYS_SCREEN = "InboxSurveys"
+    const val MY_SURVEYS_SCREEN = "MY SURVEYS"
+    const val SENT_SURVEYS_SCREEN = "SENT SURVEYS"
+    const val FILLED_OUT_SURVEYS_SCREEN = "FILLED OUT SURVEYS"
+    const val INBOX_SURVEYS_SCREEN = "INBOX"
     const val SURVEY_DETAILS_SCREEN = "SurveyDetails"
     const val SURVEY_EDIT_SCREEN = "SurveyEdit"
     const val SURVEY_FILL_OUT_SCREEN = "SurveyFillOut"
@@ -34,5 +42,8 @@ object Constants {
 
 
     const val SCAN_MESSAGE="Scan your survey"
-    const val SENT_SURVEY = "Sent survey"
+
+    const val TEXT_RECOGNITION_ERROR_MESSAGE = "An error occurred, text recognition model is not initialized yet!"
+    const val IMAGE_PROC_ERROR_MESSAGE = "An error occurred during processing"
+
 }

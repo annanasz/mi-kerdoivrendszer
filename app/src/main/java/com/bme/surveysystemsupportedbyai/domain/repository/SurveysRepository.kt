@@ -16,8 +16,9 @@ interface SurveysRepository {
     suspend fun deleteSurvey(surveyId: String)
     suspend fun saveSentSurvey(sentSurvey: SentSurvey)
     suspend fun saveReceivedSurvey(receivedSurveys: List<ReceivedSurvey>)
+    suspend fun updateReceivedSurvey(receivedSurvey: String)
     suspend fun fillOutSurvey(surveyResponse: SurveyResponse):Boolean
     suspend fun getResponse(responseId: String): SurveyResponse?
     suspend fun getResponsesWithAnswers(surveyId: String): List<SurveyResponse?>
-  suspend fun getResponsesWithAnswersTest(surveyId: String): Flow<List<SurveyResponse?>>
+    suspend fun getResponsesWithAnswersTest(surveyId: String): Flow<List<SurveyResponse?>>
 }

@@ -139,6 +139,11 @@ class SurveysRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun updateReceivedSurvey(receivedSurvey: String) {
+        val receivedSurveyRef = firestore.collection(RECEIVED_SURVEYS_COLLECTION).document(receivedSurvey)
+        receivedSurveyRef.update("filled", true).await()
+    }
+
     override suspend fun fillOutSurvey(surveyResponse: SurveyResponse):Boolean {
         val surveyResponseWithId = surveyResponse.copy(userId = auth.currentUser!!.uid, timestamp = Timestamp.now(), userEmail = auth.currentUser!!.email!!)
         val surveyResponseRef = firestore.collection(RESPONSES_COLLECTION).document()
@@ -167,7 +172,7 @@ class SurveysRepositoryImpl @Inject constructor(
         return try {
             val querySnapshot = query.get().await()
             val responses = querySnapshot.documents.map { responseDoc ->
-                val response = responseDoc.toObject<SurveyResponse>()
+                val response: SurveyResponse? = responseDoc.toObject<SurveyResponse>()
                 if (response != null) {
                     val answersDoc = responseDoc.reference.collection(ANSWER_COLLECTION)
                     val answers = answersDoc.get().await().documents.map { it.toObject<Answer>() }
@@ -246,13 +251,12 @@ class SurveysRepositoryImpl @Inject constructor(
                         }
                     }
                     if (responses != null) {
-                        trySend(responses).isSuccess // Emit the responses
+                        trySend(responses).isSuccess
                     }
                 }
             }
         }
-
-        awaitClose { listener.remove() } // Remove the listener when the flow is cancelled
+        awaitClose { listener.remove() }
     }
 
     companion object {

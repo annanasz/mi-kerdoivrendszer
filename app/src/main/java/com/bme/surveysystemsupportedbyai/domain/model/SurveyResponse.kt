@@ -10,6 +10,7 @@ data class SurveyResponse(
     var surveyTitle: String ="",
     var userId: String ="",
     var userEmail: String = "",
+    var senderEmail: String ="",
     var timestamp: Timestamp?=null,
     var answers: List<Answer?> = listOf()
 )
