@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.bme.surveysystemsupportedbyai.BuildConfig
 import com.bme.surveysystemsupportedbyai.domain.model.Question
 import com.bme.surveysystemsupportedbyai.domain.model.Survey
 import com.bme.surveysystemsupportedbyai.domain.repository.SurveysRepository
@@ -39,7 +40,6 @@ class FillOutWithSpeechViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val surveysRepository: SurveysRepository,
     private val openAIRepository: OpenAIRepository,
-    private val authRepository: AuthRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
     private var textToSpeechManager: TextToSpeechManager? = null
@@ -448,7 +448,7 @@ class FillOutWithSpeechViewModel @Inject constructor(
                             }
                         }
                         else -> {
-                            Log.e("TTS", "else respomse")
+                            Log.e("TTS", "else response")
                         }
                     }
                 }
@@ -589,6 +589,7 @@ class FillOutWithSpeechViewModel @Inject constructor(
                 val textState = _uiState.value.textState + action.text
                 _uiState.update { it.copy(textState = textState) }
             }
+            else -> {}
         }
     }
 
@@ -596,11 +597,10 @@ class FillOutWithSpeechViewModel @Inject constructor(
         val surveyResponse = SurveyResponse(
             surveyId = _uiState.value.survey.id,
             surveyTitle = _uiState.value.survey.title,
-            answers = answers,
-            senderEmail = authRepository.currentUser?.email ?: ""
+            answers = answers
         )
         viewModelScope.launch {
-            surveysRepository.fillOutSurvey(surveyResponse)
+            surveysRepository.fillOutSurvey(surveyResponse, receivedId)
             if(receivedId.isNotEmpty())
                 surveysRepository.updateReceivedSurvey(receivedId)
             textToSpeechManager?.speak("Survey response sent!", "sending_done")
@@ -618,6 +618,9 @@ class FillOutWithSpeechViewModel @Inject constructor(
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
+        val buildConfigApiKey= BuildConfig.OPENAI_API_KEY
+        if(buildConfigApiKey != "null")
+            return true
         val apiKey = sharedPreferences.getString("openai_apikey","none")
         if(apiKey=="none")
             return false
@@ -632,7 +635,7 @@ class FillOutWithSpeechViewModel @Inject constructor(
             _uiState.update { _uiState.value.copy(apiKeyNeeded = true) }
     }
 
-    fun saveOpenAIApiKey(){
+    private fun saveOpenAIApiKey(){
         val masterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
@@ -687,7 +690,7 @@ class FillOutWithSpeechViewModel @Inject constructor(
         _uiState.update { _uiState.value.copy(apiKeyEdit = false) }
     }
 
-    fun resetKey(){
+    private fun resetKey(){
         openAIRepository.resetApiKey()
     }
 

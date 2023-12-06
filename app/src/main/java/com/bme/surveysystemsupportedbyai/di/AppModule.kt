@@ -46,9 +46,11 @@ object AppModule {
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
-        val apiKey = sharedPreferences.getString("openai_apikey","none")
+        var apiKey= BuildConfig.OPENAI_API_KEY
+        if(apiKey == "null")
+            apiKey = sharedPreferences.getString("openai_apikey","none").toString()
         val openai = OpenAI(
-            token = apiKey!!, timeout = Timeout(socket = 90.seconds)
+            token = apiKey, timeout = Timeout(socket = 90.seconds)
         )
         return OpenAIRepositoryImpl(openai, context)
     }

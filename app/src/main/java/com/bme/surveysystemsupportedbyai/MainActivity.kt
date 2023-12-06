@@ -10,7 +10,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.bme.surveysystemsupportedbyai.navigation.Graph
 import com.bme.surveysystemsupportedbyai.navigation.RootNavGraph
-import com.bme.surveysystemsupportedbyai.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -26,14 +25,14 @@ class MainActivity : ComponentActivity() {
             navController = rememberNavController()
             RootNavGraph(
                 navController=navController,
-                AuthState()
+                authState()
             )
 
         }
     }
 
     @Composable
-    private fun  AuthState() : String {
+    private fun  authState() : String {
         val isUserSignedOut = viewModel.getAuthState().collectAsState().value
         if(isUserSignedOut)
             return Graph.AUTH

@@ -35,7 +35,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddQuestionDialog(
     onAddQuestion: (String) -> Unit,

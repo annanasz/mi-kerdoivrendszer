@@ -10,7 +10,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import com.bme.surveysystemsupportedbyai.core.Constants
 import com.bme.surveysystemsupportedbyai.core.Constants.titleFontFamily
 
 @OptIn(ExperimentalMaterial3Api::class)

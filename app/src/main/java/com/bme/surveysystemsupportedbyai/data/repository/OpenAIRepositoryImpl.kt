@@ -12,6 +12,7 @@ import com.aallam.openai.api.exception.OpenAIServerException
 import com.aallam.openai.api.http.Timeout
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
+import com.bme.surveysystemsupportedbyai.BuildConfig
 import com.bme.surveysystemsupportedbyai.domain.repository.OpenAIRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
@@ -54,7 +55,7 @@ class OpenAIRepositoryImpl @Inject constructor(
         return response
     }
 
-    suspend fun sendChatCompletionRequestWithRetry(
+    private suspend fun sendChatCompletionRequestWithRetry(
         request: ChatCompletionRequest,
         timeout: Duration,
         maxRetries: Int,
@@ -64,7 +65,7 @@ class OpenAIRepositoryImpl @Inject constructor(
 
         suspend fun doRequest(): ChatCompletion? {
             return withTimeoutOrNull(timeout) {
-                openai?.chatCompletion(request)
+                openai.chatCompletion(request)
             }
         }
 
@@ -102,9 +103,11 @@ class OpenAIRepositoryImpl @Inject constructor(
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
-        val apiKey = sharedPreferences.getString("openai_apikey","none")
+        var apiKey= BuildConfig.OPENAI_API_KEY
+        if(apiKey == "null")
+            apiKey = sharedPreferences.getString("openai_apikey","none").toString()
         openai = OpenAI(
-            token = apiKey!!, timeout = Timeout(socket = 90.seconds)
+            token = apiKey, timeout = Timeout(socket = 90.seconds)
         )
     }
 

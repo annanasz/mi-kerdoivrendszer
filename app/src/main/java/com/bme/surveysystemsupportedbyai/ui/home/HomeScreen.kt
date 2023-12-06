@@ -11,7 +11,6 @@ import androidx.navigation.compose.rememberNavController
 import com.bme.surveysystemsupportedbyai.ui.home.components.BottomNavigation
 import com.bme.surveysystemsupportedbyai.navigation.MainGraph
 import com.bme.surveysystemsupportedbyai.navigation.Screen
-import com.bme.surveysystemsupportedbyai.ui.home.components.BottomNavigation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

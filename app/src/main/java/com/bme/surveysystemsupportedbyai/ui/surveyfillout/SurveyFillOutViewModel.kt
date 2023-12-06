@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.bme.surveysystemsupportedbyai.domain.model.Answer
 import com.bme.surveysystemsupportedbyai.domain.model.Survey
 import com.bme.surveysystemsupportedbyai.domain.model.SurveyResponse
-import com.bme.surveysystemsupportedbyai.domain.repository.AuthRepository
 import com.bme.surveysystemsupportedbyai.domain.repository.SurveysRepository
 import com.bme.surveysystemsupportedbyai.navigation.RECEIVED_ID
 import com.bme.surveysystemsupportedbyai.navigation.SURVEY_ID
@@ -19,8 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SurveyFillOutViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val surveysRepository: SurveysRepository,
-    private val authRepository: AuthRepository
+    private val surveysRepository: SurveysRepository
 ): ViewModel(){
     val survey = mutableStateOf(Survey())
     val done = mutableStateOf(false)
@@ -80,11 +78,10 @@ class SurveyFillOutViewModel @Inject constructor(
                     type = "multiple_choice",
                     response = selectedOption
                 )
-            },
-            senderEmail = survey.value.creatorId
+            }
         )
         viewModelScope.launch {
-            surveysRepository.fillOutSurvey(surveyResponse)
+            surveysRepository.fillOutSurvey(surveyResponse, receivedId)
             if(receivedId.isNotEmpty())
                 surveysRepository.updateReceivedSurvey(receivedId)
             done.value = true

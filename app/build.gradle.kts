@@ -8,6 +8,7 @@ plugins {
     id ("dagger.hilt.android.plugin")
 }
 
+
 android {
     namespace = "com.bme.surveysystemsupportedbyai"
     compileSdk = 34
@@ -23,7 +24,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-        buildConfigField ("String", "OPENAI_API_KEY", "\"${System.getenv("OPENAI_API_KEY")}\"")
+        buildConfigField ("String", "OPENAI_API_KEY", "\"${System.getenv("OPENAI_THESIS_API_KEY")}\"")
     }
 
     buildTypes {

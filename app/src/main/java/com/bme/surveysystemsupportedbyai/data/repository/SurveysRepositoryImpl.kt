@@ -144,13 +144,21 @@ class SurveysRepositoryImpl @Inject constructor(
         receivedSurveyRef.update("filled", true).await()
     }
 
-    override suspend fun fillOutSurvey(surveyResponse: SurveyResponse):Boolean {
-        val surveyResponseWithId = surveyResponse.copy(userId = auth.currentUser!!.uid, timestamp = Timestamp.now(), userEmail = auth.currentUser!!.email!!)
+    override suspend fun fillOutSurvey(surveyResponse: SurveyResponse, receivedSurveyId: String):Boolean {
+        val surveyResponseWithId = surveyResponse.copy(userId = auth.currentUser!!.uid, timestamp = Timestamp.now(), userEmail = auth.currentUser!!.email!!, senderEmail = getSenderEmail(receivedSurveyId))
         val surveyResponseRef = firestore.collection(RESPONSES_COLLECTION).document()
         val surveyResponseId = surveyResponseRef.id
         val responseToSave = saveFillOutSurveyAnswers(surveyResponseWithId, responseId = surveyResponseId)
         surveyResponseRef.set(responseToSave).await()
         return true
+    }
+
+    private suspend fun getSenderEmail(receivedSurveyId: String):String{
+        val receivedSurveyDoc = firestore.collection(RECEIVED_SURVEYS_COLLECTION).document(receivedSurveyId).get().await()
+        val receivedSurvey = receivedSurveyDoc.toObject<ReceivedSurvey>()
+        if(receivedSurvey!=null)
+            return receivedSurvey.senderEmail.toString()
+        return String()
     }
 
 

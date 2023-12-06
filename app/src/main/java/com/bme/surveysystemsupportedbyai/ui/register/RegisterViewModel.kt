@@ -4,10 +4,8 @@ package com.bme.surveysystemsupportedbyai.ui.register
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bme.surveysystemsupportedbyai.core.Utils.Companion.showMessage
 import com.bme.surveysystemsupportedbyai.domain.model.Response
 import com.bme.surveysystemsupportedbyai.domain.repository.AuthRepository
 import com.bme.surveysystemsupportedbyai.domain.repository.RegisterResponse

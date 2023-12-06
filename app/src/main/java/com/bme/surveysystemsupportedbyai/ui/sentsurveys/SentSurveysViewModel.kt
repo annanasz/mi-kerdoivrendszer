@@ -3,10 +3,8 @@ package com.bme.surveysystemsupportedbyai.ui.sentsurveys
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bme.surveysystemsupportedbyai.domain.model.SentSurvey
-import com.bme.surveysystemsupportedbyai.domain.model.SurveyResponse
 import com.bme.surveysystemsupportedbyai.domain.repository.AuthRepository
 import com.bme.surveysystemsupportedbyai.domain.repository.SurveysRepository
-import com.bme.surveysystemsupportedbyai.ui.filledoutsurveys.FilledOutSurveysUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

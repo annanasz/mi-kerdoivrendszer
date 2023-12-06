@@ -11,7 +11,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bme.surveysystemsupportedbyai.components.TopBar
 import com.bme.surveysystemsupportedbyai.core.Constants
 import com.bme.surveysystemsupportedbyai.ui.inboxsurveys.components.InboxSurveyList

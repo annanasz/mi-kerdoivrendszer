@@ -4,7 +4,6 @@ import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
-import kotlinx.coroutines.delay
 
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue

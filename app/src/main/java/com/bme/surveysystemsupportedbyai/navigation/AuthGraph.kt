@@ -6,7 +6,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import com.bme.surveysystemsupportedbyai.core.Constants
-import com.bme.surveysystemsupportedbyai.ui.home.HomeScreen
 import com.bme.surveysystemsupportedbyai.ui.register.RegisterScreen
 import com.bme.surveysystemsupportedbyai.ui.sign_in.SignInScreen
 import com.bme.surveysystemsupportedbyai.ui.theme.AppTheme

@@ -6,11 +6,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.bme.surveysystemsupportedbyai.domain.model.Response
 import com.bme.surveysystemsupportedbyai.components.ProgressBar
 import com.bme.surveysystemsupportedbyai.ui.sign_in.SignInViewModel
-import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuthException
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
-import com.google.firebase.auth.FirebaseAuthInvalidUserException
-import io.ktor.util.reflect.instanceOf
 
 @Composable
 fun SignIn(

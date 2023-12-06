@@ -1,8 +1,5 @@
 package com.bme.surveysystemsupportedbyai.components
 
-
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,14 +15,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import com.bme.surveysystemsupportedbyai.core.Constants.SIGN_OUT_ITEM
-import com.bme.surveysystemsupportedbyai.R
 import com.bme.surveysystemsupportedbyai.core.Constants.titleFontFamily
 
 @OptIn(ExperimentalMaterial3Api::class)

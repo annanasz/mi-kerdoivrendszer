@@ -69,7 +69,6 @@ class SpeechToTextManager(context: Context, private val onInactivity: ()->Unit, 
                     SpeechRecognizer.ERROR_NETWORK -> "Network"
                     SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Network Timeout"
                     SpeechRecognizer.ERROR_NO_MATCH -> {
-                        "No Match"
                         onInactivity()
                     }
                     SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Busy"
