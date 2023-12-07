@@ -1,5 +1,6 @@
 package com.bme.surveysystemsupportedbyai.ui.mysurveys
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,11 +17,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bme.surveysystemsupportedbyai.components.TopBar
 import com.bme.surveysystemsupportedbyai.core.Constants
+import com.bme.surveysystemsupportedbyai.ui.filloutwithspeech.LoadingAnimation
 import com.bme.surveysystemsupportedbyai.ui.mysurveys.components.DeleteAlertDialog
 import com.bme.surveysystemsupportedbyai.ui.mysurveys.components.SendSurveyDialog
 import com.bme.surveysystemsupportedbyai.ui.mysurveys.components.SurveyList
@@ -65,59 +68,73 @@ fun MySurveysSurveyScreen(
         },
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
+        if (viewModel.loading.value)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center
+            ) {
+                LoadingAnimation()
+            } else {
+            Column(
+                modifier = Modifier
+                    .padding(
+                        0.dp,
+                        innerPadding.calculateTopPadding(),
+                        0.dp,
+                        paddingValues.calculateBottomPadding() + 16.dp
+                    )
+                    .fillMaxSize()
+            ) {
+                SurveyList(
+                    surveys = uiState.surveys,
+                    onEditClick = { survey ->
+                        viewModel.onEditClick(
+                            survey,
+                            openScreen = openDetailsScreen
+                        )
+                    },
+                    onDeleteClick = { survey ->
+                        viewModel.onDeleteButtonClick(survey)
+                    },
+                    onSendClick = { survey ->
+                        viewModel.onSendButtonClicked(survey)
+                    },
+                    onItemClick = { survey ->
+                        viewModel.onItemClick(
+                            survey = survey,
+                            openScreen = openDetailsScreen
+                        )
+                    }
+                )
 
-        Column(
-            modifier = Modifier
-                .padding(0.dp, innerPadding.calculateTopPadding(), 0.dp, paddingValues.calculateBottomPadding() + 16.dp)
-                .fillMaxSize()
-        ) {
-            SurveyList(
-                surveys = uiState.surveys,
-                onEditClick = { survey ->
-                    viewModel.onEditClick(
-                        survey,
-                        openScreen = openDetailsScreen
-                    )
-                },
+            }
+        }
+        if (viewModel.showSendDeleteDialog) {
+            DeleteAlertDialog(
                 onDeleteClick = { survey ->
-                    viewModel.onDeleteButtonClick(survey)
+                    viewModel.deleteSurvey(survey)
                 },
-                onSendClick = { survey ->
-                    viewModel.onSendButtonClicked(survey)
-                },
-                onItemClick = { survey ->
-                    viewModel.onItemClick(
-                        survey = survey,
-                        openScreen = openDetailsScreen
-                    )
+                surveyToDelete = viewModel.deleteSurvey,
+                onDismiss = {
+                    viewModel.onDismissDeleteDialog()
                 }
             )
-
         }
-    }
-    if (viewModel.showSendDeleteDialog) {
-        DeleteAlertDialog(
-            onDeleteClick = { survey ->
-                viewModel.deleteSurvey(survey)
-            },
-            surveyToDelete = viewModel.deleteSurvey,
-            onDismiss = {
-                viewModel.onDismissDeleteDialog()
-            }
-        )
-    }
-    if (viewModel.showSendSurveyDialog) {
-        SendSurveyDialog(
-            onSendClick = { survey->
-                viewModel.sendSurvey(survey)
-            },
-            onCancelClick = {
-                viewModel.onDismissSendDialog()
-            },
-            onEmailListChanged = {viewModel.updateEmailList(it)},
-            emailList = viewModel.emailList,
-            selectedSurvey = viewModel.sendSurvey
-        )
-    }
+        if (viewModel.showSendSurveyDialog) {
+            SendSurveyDialog(
+                onSendClick = { survey ->
+                    viewModel.sendSurvey(survey)
+                },
+                onCancelClick = {
+                    viewModel.onDismissSendDialog()
+                },
+                onEmailListChanged = { viewModel.updateEmailList(it) },
+                emailList = viewModel.emailList,
+                selectedSurvey = viewModel.sendSurvey
+            )
+        }
 
+    }
 }

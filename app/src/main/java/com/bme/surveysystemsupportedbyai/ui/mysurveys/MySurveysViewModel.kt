@@ -26,6 +26,7 @@ class MySurveysViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(MySurveysUiState())
     val uiState: StateFlow<MySurveysUiState> = _uiState.asStateFlow()
+    val loading = mutableStateOf(true)
 
 
     var emailList by mutableStateOf("")
@@ -44,9 +45,11 @@ class MySurveysViewModel @Inject constructor(
             try {
                 surveysRepository.userSurveys.collect { surveys ->
                     _uiState.value = _uiState.value.copy(surveys = surveys)
+                    loading.value = false
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(errorMessage = e.message)
+                loading.value = false
             }
         }
     }

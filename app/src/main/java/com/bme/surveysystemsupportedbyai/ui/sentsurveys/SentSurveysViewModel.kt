@@ -1,5 +1,6 @@
 package com.bme.surveysystemsupportedbyai.ui.sentsurveys
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bme.surveysystemsupportedbyai.domain.model.SentSurvey
@@ -19,15 +20,18 @@ class SentSurveysViewModel @Inject constructor(
 ): ViewModel() {
     private val _uiState = MutableStateFlow(SentSurveysUiState())
     val uiState: StateFlow<SentSurveysUiState> = _uiState.asStateFlow()
+    val loading = mutableStateOf(true)
 
     fun fetchData() {
         viewModelScope.launch {
             try {
                 surveysRepository.sentSurveys.collect { surveys ->
                     _uiState.value = _uiState.value.copy(sentSurveys = surveys)
+                    loading.value = false
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(errorMessage = e.message)
+                loading.value = false
             }
         }
     }
