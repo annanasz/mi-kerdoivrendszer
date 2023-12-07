@@ -46,9 +46,10 @@ object AppModule {
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
-        var apiKey= BuildConfig.OPENAI_API_KEY
-        if(apiKey == "null")
-            apiKey = sharedPreferences.getString("openai_apikey","none").toString()
+
+        var apiKey = sharedPreferences.getString("openai_apikey","none").toString()
+        if(apiKey == "none")
+            apiKey= BuildConfig.OPENAI_API_KEY
         val openai = OpenAI(
             token = apiKey, timeout = Timeout(socket = 90.seconds)
         )
