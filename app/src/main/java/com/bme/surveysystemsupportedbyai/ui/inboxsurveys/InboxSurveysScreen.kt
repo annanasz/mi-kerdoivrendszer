@@ -1,5 +1,6 @@
 package com.bme.surveysystemsupportedbyai.ui.inboxsurveys
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -9,10 +10,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bme.surveysystemsupportedbyai.components.TopBar
 import com.bme.surveysystemsupportedbyai.core.Constants
+import com.bme.surveysystemsupportedbyai.ui.filloutwithspeech.LoadingAnimation
 import com.bme.surveysystemsupportedbyai.ui.inboxsurveys.components.InboxSurveyList
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,33 +29,34 @@ fun InboxSurveyScreen(
         viewModel.fetchData()
     }
 
-    Scaffold(
-        topBar = {
-            TopBar(
-                title = Constants.INBOX_SURVEYS_SCREEN,
-                signOut = {
-                    viewModel.signOut()
-                }
-            )
-        }
-    ) { innerPadding ->
-        Column(
+    Scaffold(topBar = {
+        TopBar(title = Constants.INBOX_SURVEYS_SCREEN, signOut = {
+            viewModel.signOut()
+        })
+    }) { innerPadding ->
+        if (viewModel.loading.value) Box(
             modifier = Modifier
-                .padding(innerPadding)
                 .fillMaxSize()
+                .padding(innerPadding),
+            contentAlignment = Alignment.Center
         ) {
-            InboxSurveyList(
-                surveys = uiState.receivedSurveys,
-                onFillOutClick = { receivedSurvey ->
-                    viewModel.onFillOutClick(
-                        receivedSurvey,
-                        openFillOutScreen
-                    )
-                },
-                onFillOutWithSpeechClick ={receivedSurvey ->
-                    viewModel.onFillOutWithSpeechClick(receivedSurvey, openFillOutScreen)
-                })
+            LoadingAnimation()
+        } else {
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+            ) {
+                InboxSurveyList(surveys = uiState.receivedSurveys,
+                    onFillOutClick = { receivedSurvey ->
+                        viewModel.onFillOutClick(
+                            receivedSurvey, openFillOutScreen
+                        )
+                    },
+                    onFillOutWithSpeechClick = { receivedSurvey ->
+                        viewModel.onFillOutWithSpeechClick(receivedSurvey, openFillOutScreen)
+                    })
+            }
         }
     }
-
 }
